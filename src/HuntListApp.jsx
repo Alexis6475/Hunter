@@ -47,20 +47,20 @@ function Waterfall(props){
   useEffect(function(){var ro=new ResizeObserver(function(e){var w=e[0]&&e[0].contentRect.width;if(w>50)setWW(w)});if(cRef.current)ro.observe(cRef.current);return function(){ro.disconnect()}},[]);
   useEffect(function(){
     if(!ref.current||!props.total)return;var svg=d3.select(ref.current);svg.selectAll("*").remove();
-    var steps=[{l:"Total",v:props.total,t:"total"},{l:"Public",v:-props.pub,t:"dec"},{l:"Private",v:props.priv,t:"acc"},{l:"Current",v:-props.cc,t:"dec"},{l:"New\nProspects",v:props.np,t:"fin"}];
+    var steps=[{l:"Active NIP\ncodes",v:4344,t:"total"},{l:"Non-priority\nsegments",v:-894,t:"dec"},{l:"Priority\nsegments",v:3450,t:"sub"},{l:"Not\nmapped",v:-261,t:"dec"},{l:"P2 Opp.",v:-1613,t:"dec"},{l:"P1 High\npriority",v:1576,t:"sub"},{l:"Public",v:-186,t:"dec"},{l:"Private\n(scope)",v:props.priv||1390,t:"fin"}];
     var h=250,m={top:25,right:10,bottom:50,left:45},iw=ww-m.left-m.right,ih=h-m.top-m.bottom;
     var g=svg.attr("viewBox","0 0 "+ww+" "+h).append("g").attr("transform","translate("+m.left+","+m.top+")");
     var x=d3.scaleBand().domain(steps.map(function(d){return d.l})).range([0,iw]).padding(.18);
-    var mx=props.total*1.15;
+    var mx=5000;
     var y=d3.scaleLinear().domain([0,mx]).range([ih,0]);
     var run=0;var bars=steps.map(function(s){var y0,y1;if(s.t==="total"||s.t==="acc"||s.t==="fin"){y0=0;y1=Math.abs(s.v);run=Math.abs(s.v)}else{y0=run+s.v;y1=run;run=y0}return{l:s.l,v:s.v,t:s.t,y0:y0,y1:y1}});
     for(var i=0;i<bars.length-1;i++){var c=bars[i],n=bars[i+1],fy=(c.t==="dec")?y(c.y0):y(c.y1);g.append("line").attr("x1",x(c.l)+x.bandwidth()).attr("x2",x(n.l)).attr("y1",fy).attr("y2",fy).attr("stroke","#d1d5db").attr("stroke-dasharray","3,3")}
     var bg=g.selectAll(".b").data(bars).join("g");
-    bg.append("rect").attr("x",function(d){return x(d.l)}).attr("width",x.bandwidth()).attr("y",function(d){return y(Math.max(d.y0,d.y1))}).attr("height",0).attr("rx",5).attr("fill",function(d){return d.t==="total"?Dk:d.t==="acc"?P:d.t==="fin"?"#16a34a":"#e5e7eb"}).transition().duration(500).delay(function(_,i){return i*80}).attr("height",function(d){return Math.abs(y(d.y0)-y(d.y1))});
+    bg.append("rect").attr("x",function(d){return x(d.l)}).attr("width",x.bandwidth()).attr("y",function(d){return y(Math.max(d.y0,d.y1))}).attr("height",0).attr("rx",5).attr("fill",function(d){return d.t==="total"?Dk:d.t==="sub"?"#475569":d.t==="fin"?"#be123c":"#fda4af"}).transition().duration(500).delay(function(_,i){return i*80}).attr("height",function(d){return Math.abs(y(d.y0)-y(d.y1))});
     bg.append("text").attr("x",function(d){return x(d.l)+x.bandwidth()/2}).attr("y",function(d){return y(Math.max(d.y0,d.y1))-5}).attr("text-anchor","middle").attr("font-size",11).attr("font-weight",800).attr("fill",Dk).attr("opacity",0).text(function(d){return Math.abs(d.v).toLocaleString()}).transition().duration(300).delay(function(_,i){return i*80+400}).attr("opacity",1);
     g.append("g").attr("transform","translate(0,"+ih+")").call(d3.axisBottom(x).tickSize(0)).selectAll("text").attr("font-size",9).attr("fill","#9ca3af");g.selectAll(".domain").remove();
     g.append("g").call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(","))).selectAll("text").attr("font-size",9).attr("fill","#9ca3af");g.selectAll(".tick line").attr("stroke","#f3f4f6");g.selectAll(".domain").remove();
-  },[props.total,props.pub,props.priv,props.cc,props.np,ww]);
+  },[props.priv,ww]);
   return<div ref={cRef} style={{width:"100%"}}><svg ref={ref} style={{width:"100%",height:"auto"}}/></div>;
 }
 
@@ -142,14 +142,16 @@ var COLS=[
 export default function App(){
   var[companies,setCo]=useState(function(){return genCo(50)});
   var[view,setView]=useState("dashboard");var[search,setSearch]=useState("");
-  var[segF,setSegF]=useState("All");var[cluF,setCluF]=useState("All");
+  var[segF,setSegF]=useState("All");var[cluF,setCluF]=useState("All");var[regF,setRegF]=useState("All");var[ownF,setOwnF]=useState("All");
   var[sortK,setSortK]=useState("revenueBnEur");var[sortD,setSortD]=useState("desc");
   var[page,setPage]=useState(0);var[panel,setPanel]=useState(null);var[hovRow,setHovRow]=useState(null);
+  var[showColPicker,setShowColPicker]=useState(false);
+  var[visibleCols,setVisibleCols]=useState(function(){return["nip","name","segment","subSegment","ownership","revenueBnEur","profitPct","outsourcingPropensity","potentialSpendMEur","cluster","score","contactName"]});
   var store=useStore();var PS=30;
 
   var updateCo=useCallback(function(id,key,val){setCo(function(prev){return prev.map(function(c){if(c.id===id){var n=Object.assign({},c);n[key]=val;return n}return c})})},[]);
 
-  var filtered=useMemo(function(){var d=companies.slice();if(search){var q=search.toLowerCase();d=d.filter(function(c){return c.name.toLowerCase().includes(q)||c.nip.includes(q)})}if(segF!=="All")d=d.filter(function(c){return c.segment===segF});if(cluF!=="All")d=d.filter(function(c){return c.cluster===cluF});d.sort(function(a,b){var av=a[sortK],bv=b[sortK];if(typeof av==="string"){av=av.toLowerCase();bv=bv.toLowerCase()}return sortD==="asc"?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0)});return d},[companies,search,segF,cluF,sortK,sortD]);
+  var filtered=useMemo(function(){var d=companies.slice();if(search){var q=search.toLowerCase();d=d.filter(function(c){return c.name.toLowerCase().includes(q)||c.nip.includes(q)})}if(segF!=="All")d=d.filter(function(c){return c.segment===segF});if(cluF!=="All")d=d.filter(function(c){return c.cluster===cluF});if(regF!=="All")d=d.filter(function(c){return c.region===regF});if(ownF!=="All")d=d.filter(function(c){return c.ownership===ownF});d.sort(function(a,b){var av=a[sortK],bv=b[sortK];if(typeof av==="string"){av=av.toLowerCase();bv=bv.toLowerCase()}return sortD==="asc"?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0)});return d},[companies,search,segF,cluF,regF,ownF,sortK,sortD]);
 
   var pg=filtered.slice(page*PS,(page+1)*PS),tp=Math.ceil(filtered.length/PS)||1;
   var hs=function(k){if(sortK===k)setSortD(sortD==="asc"?"desc":"asc");else{setSortK(k);setSortD("desc")}setPage(0)};
@@ -199,10 +201,19 @@ export default function App(){
 
       <div>
         <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12,alignItems:"center"}}>
-          <input placeholder="Search…" value={search} onChange={function(e){setSearch(e.target.value);setPage(0)}} style={Object.assign({},inp,{width:200,background:"#fff"})}/>
+          <input placeholder="Search…" value={search} onChange={function(e){setSearch(e.target.value);setPage(0)}} style={Object.assign({},inp,{width:180,background:"#fff"})}/>
           <select value={segF} onChange={function(e){setSegF(e.target.value);setPage(0)}} style={Object.assign({},inp,{width:"auto",background:"#fff",cursor:"pointer"})}><option value="All">Segment</option>{SEGMENTS.map(function(o){return<option key={o} value={o}>{o}</option>})}</select>
           <select value={cluF} onChange={function(e){setCluF(e.target.value);setPage(0)}} style={Object.assign({},inp,{width:"auto",background:"#fff",cursor:"pointer"})}><option value="All">Cluster</option>{CLUSTERS.map(function(o){return<option key={o} value={o}>{o}</option>})}</select>
-          <span style={{fontSize:10,color:"#9ca3af",marginLeft:"auto",fontWeight:600}}>{filtered.length} results · double-click to edit</span>
+          <select value={regF} onChange={function(e){setRegF(e.target.value);setPage(0)}} style={Object.assign({},inp,{width:"auto",background:"#fff",cursor:"pointer"})}><option value="All">Region</option>{REGIONS.map(function(o){return<option key={o} value={o}>{o}</option>})}</select>
+          <select value={ownF} onChange={function(e){setOwnF(e.target.value);setPage(0)}} style={Object.assign({},inp,{width:"auto",background:"#fff",cursor:"pointer"})}><option value="All">Ownership</option><option value="Public">Public</option><option value="Private">Private</option></select>
+          <div style={{position:"relative",marginLeft:4}}>
+            <button onClick={function(){setShowColPicker(!showColPicker)}} style={{padding:"7px 12px",borderRadius:10,border:"1px solid #e5e7eb",background:showColPicker?"#1e2a3a":"#fff",color:showColPicker?"#fff":"#6b7280",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:F,display:"flex",alignItems:"center",gap:4}}>⚙ Columns ({visibleCols.length}/{COLS.length})</button>
+            {showColPicker&&<div style={{position:"absolute",top:"100%",left:0,marginTop:4,background:"#fff",borderRadius:12,boxShadow:"0 8px 30px rgba(0,0,0,.15)",border:"1px solid #e5e7eb",padding:"10px 12px",zIndex:20,width:240,maxHeight:350,overflowY:"auto"}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}><span style={{fontSize:11,fontWeight:800,color:Dk}}>Show/Hide Columns</span><div style={{display:"flex",gap:4}}><button onClick={function(){setVisibleCols(COLS.map(function(c){return c.k}))}} style={{fontSize:9,color:P,background:"none",border:"none",cursor:"pointer",fontWeight:700,fontFamily:F}}>All</button><button onClick={function(){setVisibleCols(["name","segment","cluster","score"])}} style={{fontSize:9,color:"#6b7280",background:"none",border:"none",cursor:"pointer",fontWeight:700,fontFamily:F}}>Min</button></div></div>
+              {COLS.map(function(col){var checked=visibleCols.includes(col.k);return<label key={col.k} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0",cursor:"pointer",fontSize:11,color:checked?Dk:"#9ca3af"}}><input type="checkbox" checked={checked} onChange={function(){setVisibleCols(function(prev){return checked?prev.filter(function(k){return k!==col.k}):prev.concat([col.k])})}} style={{accentColor:P}}/>{col.l}</label>})}
+            </div>}
+          </div>
+          <span style={{fontSize:10,color:"#9ca3af",marginLeft:"auto",fontWeight:600}}>{filtered.length} results</span>
         </div>
         <div style={{position:"relative"}}>
           <style>{`
@@ -222,8 +233,12 @@ export default function App(){
           <div style={Object.assign({},cd,{overflow:"hidden"})}>
             <div className="hunt-scroll" onScroll={function(e){var top=e.target.parentElement.parentElement.querySelector('.hunt-top-scroll');if(top&&!e.target._lock){top._lock=true;top.scrollLeft=e.target.scrollLeft;setTimeout(function(){top._lock=false},20)}}} style={{overflowX:"scroll",overflowY:"visible",paddingBottom:2}}>
               <table style={{width:"max-content",minWidth:"100%",borderCollapse:"collapse",fontSize:12}}>
-                <thead><tr>{COLS.map(function(c){return<th key={c.k} onClick={function(){hs(c.k)}} style={{padding:"9px 12px",textAlign:"left",fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:".08em",color:sortK===c.k?P:"#9ca3af",borderBottom:"2px solid #f0f0f5",cursor:"pointer",userSelect:"none",whiteSpace:"nowrap",minWidth:c.w,background:"#fafafa",position:"sticky",top:0,zIndex:2}}>{c.l}{sortK===c.k?(sortD==="asc"?" ↑":" ↓"):""}</th>})}<th style={{position:"sticky",right:0,background:"#fafafa",borderBottom:"2px solid #f0f0f5",minWidth:180,zIndex:3}}></th></tr></thead>
-                <tbody>{pg.map(function(c,i){var q=store.qual(c.id);var hf=store.hasFile(c.id);var isH=hovRow===c.id;var bg=isH?"#eef2ff":i%2===0?"#fff":"#fafafa";
+                <thead><tr>{COLS.filter(function(c){return visibleCols.includes(c.k)}).map(function(c){return<th key={c.k} onClick={function(){hs(c.k)}} style={{padding:"9px 12px",textAlign:"left",fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:".08em",color:sortK===c.k?P:"#9ca3af",borderBottom:"2px solid #f0f0f5",cursor:"pointer",userSelect:"none",whiteSpace:"nowrap",minWidth:c.w,background:"#fafafa",position:"sticky",top:0,zIndex:2}}>{c.l}{sortK===c.k?(sortD==="asc"?" ↑":" ↓"):""}</th>})}<th style={{position:"sticky",right:0,background:"#fafafa",borderBottom:"2px solid #f0f0f5",minWidth:180,zIndex:3,padding:"9px 12px",fontSize:9,fontWeight:800,color:"#9ca3af",textTransform:"uppercase",letterSpacing:".08em"}}>Actions</th></tr></thead>
+                <tbody>{pg.map(function(c,i){var q=store.qual(c.id);var hf=store.hasFile(c.id);var isH=hovRow===c.id;
+                  var qualBg=q?(q.label==="SQL"?"#f0fdf4":q.label==="MQL"?"#fffbeb":"#fef2f2"):"transparent";
+                  var baseBg=i%2===0?"#fff":"#fafafa";
+                  var bg=isH?"#eef2ff":q?qualBg:baseBg;
+                  var leftBorder=q?(q.label==="SQL"?"3px solid #16a34a":q.label==="MQL"?"3px solid #f59e0b":"3px solid #ef4444"):"3px solid transparent";
                   function renderCell(col){
                     var v=c[col.k];
                     if(col.k==="name")return<div style={{display:"flex",alignItems:"center"}}><EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} render={function(x){return<span style={{fontWeight:700,color:Dk}}>{x}</span>}}/>{q&&<QBadge q={q}/>}{hf&&<span style={{marginLeft:3,fontSize:9,color:P}}>📋</span>}</div>;
@@ -236,8 +251,8 @@ export default function App(){
                     if(typeof v==="number")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} type="number" render={function(x){return<span style={{fontVariantNumeric:"tabular-nums"}}>{typeof x==="number"&&x>1000000?Number(x).toExponential(2):Number(x).toLocaleString(undefined,{maximumFractionDigits:2})}</span>}}/>;
                     return<EditCell value={v||""} onSave={function(x){updateCo(c.id,col.k,x)}}/>;
                   }
-                  return<tr key={c.id} style={{background:bg,transition:"background .1s"}} onMouseEnter={function(){setHovRow(c.id)}} onMouseLeave={function(){setHovRow(null)}}>
-                    {COLS.map(function(col){return<td key={col.k} style={{padding:"8px 12px",borderBottom:"1px solid #f0f0f5",whiteSpace:"nowrap",color:"#374151"}}>{renderCell(col)}</td>})}
+                  return<tr key={c.id} style={{background:bg,transition:"background .1s",borderLeft:leftBorder}} onMouseEnter={function(){setHovRow(c.id)}} onMouseLeave={function(){setHovRow(null)}}>
+                    {COLS.filter(function(col){return visibleCols.includes(col.k)}).map(function(col){return<td key={col.k} style={{padding:"8px 12px",borderBottom:"1px solid #f0f0f5",whiteSpace:"nowrap",color:"#374151"}}>{renderCell(col)}</td>})}
                     <td style={{position:"sticky",right:0,background:bg,borderBottom:"1px solid #f0f0f5",padding:"8px 10px",zIndex:3,boxShadow:"-4px 0 8px rgba(0,0,0,.04)"}}>
                       <div style={{display:"flex",gap:4,opacity:isH?1:0,transition:"opacity .15s"}}>
                         <button onClick={function(){setPanel({type:"prequal",co:c})}} style={{padding:"5px 12px",borderRadius:8,border:"none",background:P,color:"#fff",fontSize:10,fontWeight:800,cursor:"pointer",fontFamily:F}}>🎯 Pre-qual</button>
