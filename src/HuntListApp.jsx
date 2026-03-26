@@ -228,6 +228,10 @@ function ScoreModal({co,store,onClose}){
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:6,minWidth:160}}>
               <div style={{fontSize:12,color:"#94a3b8"}}>{done}/{tot} criteria scored</div>
+              {done>0&&<div style={{fontSize:10,color:"#64748b",background:"#f8fafc",borderRadius:6,padding:"6px 8px",border:"1px solid #f1f5f9",lineHeight:1.6}}>
+                {PREQUAL.map(cat=>cat.items.filter(it=>scores[it.id]).map(it=><span key={it.id} style={{display:"block"}}><span style={{color:cat.color,fontWeight:700}}>{it.name.split(" ")[0]}</span> {scores[it.id]}×{it.w} = {scores[it.id]*it.w}</span>)).flat()}
+                <span style={{display:"block",borderTop:"1px solid #e2e8f0",marginTop:4,paddingTop:4,fontWeight:700,color:"#1e293b"}}>Σ = {PREQUAL.map(cat=>cat.items.filter(it=>scores[it.id]).map(it=>scores[it.id]*it.w)).flat().reduce((a,b)=>a+b,0)} ÷ {PREQUAL.map(cat=>cat.items.filter(it=>scores[it.id]).map(it=>it.w)).flat().reduce((a,b)=>a+b,0)} = {ws.toFixed(1)}</span>
+              </div>}
               {PREQUAL.map(cat=>{const cs=cat.items.filter(c=>scores[c.id]);const avg=cs.length?cs.reduce((s,c)=>s+scores[c.id],0)/cs.length:0;
                 return<div key={cat.cat}>
                   <div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}><span style={{fontSize:10,fontWeight:700,color:cat.color}}>{cat.cat}</span><span style={{fontSize:10,fontWeight:700,color:"#1e293b"}}>{avg.toFixed(1)}</span></div>
@@ -249,7 +253,7 @@ function ScoreModal({co,store,onClose}){
               {cat.items.map(it=><div key={it.id} style={{background:"#fff",borderRadius:12,padding:"16px 18px",boxShadow:"0 1px 3px rgba(0,0,0,0.05)",borderLeft:`4px solid ${scores[it.id]?cat.color:"#e2e8f0"}`,transition:"border-color 0.2s"}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
                   <h4 style={{margin:0,fontSize:14,fontWeight:700,color:"#1e293b"}}>{it.name}</h4>
-                  <span style={{fontSize:10,fontWeight:700,color:"#94a3b8",background:"#f8fafc",padding:"2px 6px",borderRadius:4,border:"1px solid #f1f5f9"}}>×{it.w}</span>
+                  <span style={{fontSize:10,fontWeight:700,color:cat.color,background:cat.color+"18",padding:"2px 8px",borderRadius:4,border:`1px solid ${cat.color}33`}}>weight = {it.w}</span>
                 </div>
                 <p style={{margin:"0 0 10px",fontSize:12,color:"#94a3b8",lineHeight:1.5}}>{it.desc}</p>
                 <ScoreBtn value={scores[it.id]||0} onChange={v=>setS(p=>({...p,[it.id]:v}))} color={cat.color}/>
