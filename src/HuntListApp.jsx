@@ -176,7 +176,18 @@ function PrequalPanel({co,store,onClose}){
 /* ═══ PROSPECT FILE PANEL ═══ */
 function ProspectPanel({co,store,onClose}){
   const saved0=store.get(co.id);
-  const[fields,setFields]=useState(saved0.prospect||{});
+  // Pre-fill from hunt list data if prospect fields are empty
+  const defaults={
+    contactName:"",contactTitle:"",contactEmail:"",contactPhone:"",linkedinUrl:"",
+    industry:`${co.segment} — ${co.subSegment}`,
+    companyProfile:`${co.name}\nNIP: ${co.nip}\nRegion: ${co.region}\nRevenue: ${co.revenue}m€\nEmployees: ${co.employees.toLocaleString()}\nSites in Poland: ${co.sites}\nBusiness Scale: ${co.businessScale}\nOwnership: ${co.ownership}\nPriority: ${co.priority}\nOutsourcing Propensity: ${co.outsourcingPropensity}`,
+    currentProvider:"",contractExpiry:"",totalSurface:"",
+    decisionMaker:"",keyPriorities:"",
+    meetingDate:"",meetingType:"",attendees:"",expressedNeeds:"",painPoints:"",objections:"",priceSensitivity:"",nextStepsAgreed:"",
+    debriefNotes:"",revisedProbability:"",blockingPoints:"",nextActions:"",followUpDate:"",estimatedValue:"",
+  };
+  const merged={...defaults,...(saved0.prospect||{})};
+  const[fields,setFields]=useState(merged);
   const[ok,setOk]=useState(false);
   useEffect(()=>{store.save(co.id,"prospect",fields)},[fields]);
   const doSave=()=>{store.save(co.id,"prospect",fields);setOk(true);setTimeout(()=>setOk(false),2000)};
@@ -214,20 +225,11 @@ function ProspectPanel({co,store,onClose}){
   </SidePanel>;
 }
 
-/* ═══ HOVER ACTION BUTTONS (overlay on row) ═══ */
-function RowActions({onPrequal,onProspect,qual,hasFile}){
-  return<div style={{display:"flex",gap:6,alignItems:"center"}}>
-    <button onClick={e=>{e.stopPropagation();onPrequal()}} style={{padding:"4px 10px",borderRadius:6,border:"1px solid #be123c33",background:"#be123c10",color:"#be123c",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:F,whiteSpace:"nowrap",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.background="#be123c";e.currentTarget.style.color="#fff"}} onMouseLeave={e=>{e.currentTarget.style.background="#be123c10";e.currentTarget.style.color="#be123c"}}>🎯 {qual?"Edit score":"Pre-qual"}</button>
-    <button onClick={e=>{e.stopPropagation();onProspect()}} style={{padding:"4px 10px",borderRadius:6,border:"1px solid #0891b233",background:"#0891b210",color:"#0891b2",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:F,whiteSpace:"nowrap",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.background="#0891b2";e.currentTarget.style.color="#fff"}} onMouseLeave={e=>{e.currentTarget.style.background="#0891b210";e.currentTarget.style.color="#0891b2"}}>📋 {hasFile?"Edit file":"Prospect file"}</button>
-  </div>;
-}
-
 /* ═══ MAIN ═══ */
 const COLS=[
-  {k:"name",l:"Company",w:190},{k:"segment",l:"Segment",w:150},{k:"region",l:"Region",w:115},
-  {k:"priority",l:"Priority",w:110},{k:"status",l:"Status",w:120},{k:"revenue",l:"Rev. (m€)",w:85},
-  {k:"employees",l:"Emp.",w:75},{k:"sites",l:"Sites",w:60},{k:"outsourcingPropensity",l:"Outsrc.",w:80},
-  {k:"qual",l:"Score",w:70},{k:"file",l:"File",w:50},{k:"actions",l:"",w:220},
+  {k:"name",l:"Company",w:200},{k:"segment",l:"Segment",w:155},{k:"region",l:"Region",w:120},
+  {k:"priority",l:"Priority",w:115},{k:"status",l:"Status",w:125},{k:"revenue",l:"Rev. (m€)",w:90},
+  {k:"employees",l:"Emp.",w:80},{k:"sites",l:"Sites",w:60},{k:"outsourcingPropensity",l:"Outsrc.",w:85},
 ];
 
 export default function App(){
@@ -290,22 +292,23 @@ export default function App(){
         <div style={{background:"#fff",borderRadius:14,overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.05)",border:"1px solid #f1f5f9"}}>
           <div style={{overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-              <thead><tr>{COLS.map(c=><th key={c.k} onClick={()=>!["actions","qual","file"].includes(c.k)&&hs(c.k)} style={{padding:"12px 14px",textAlign:"left",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",color:sortK===c.k?"#be123c":"#94a3b8",borderBottom:"2px solid #f1f5f9",cursor:["actions","qual","file"].includes(c.k)?"default":"pointer",userSelect:"none",whiteSpace:"nowrap",minWidth:c.w,background:"#fafbfc"}}>{c.l} {sortK===c.k?(sortD==="asc"?"↑":"↓"):""}</th>)}</tr></thead>
+              <thead><tr>{COLS.map(c=><th key={c.k} onClick={()=>hs(c.k)} style={{padding:"12px 14px",textAlign:"left",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",color:sortK===c.k?"#be123c":"#94a3b8",borderBottom:"2px solid #f1f5f9",cursor:"pointer",userSelect:"none",whiteSpace:"nowrap",minWidth:c.w,background:"#fafbfc"}}>{c.l} {sortK===c.k?(sortD==="asc"?"↑":"↓"):""}</th>)}</tr></thead>
               <tbody>{pg.map((c,i)=>{const q=store.qual(c.id);const hf=store.hasFile(c.id);const isHov=hovRow===c.id;
-                return<tr key={c.id} style={{background:isHov?"#f0f9ff":i%2===0?"#fff":"#fafbfc",transition:"background .15s"}} onMouseEnter={()=>setHovRow(c.id)} onMouseLeave={()=>setHovRow(null)}>
+                return<tr key={c.id} style={{background:isHov?"#f0f9ff":i%2===0?"#fff":"#fafbfc",transition:"background .15s",position:"relative"}} onMouseEnter={()=>setHovRow(c.id)} onMouseLeave={()=>setHovRow(null)}>
                   {COLS.map(col=><td key={col.k} style={{padding:"10px 14px",borderBottom:"1px solid #f1f5f9",whiteSpace:"nowrap",color:"#334155"}}>
-                    {col.k==="actions"?
-                      (isHov?<RowActions onPrequal={()=>setPanel({type:"prequal",co:c})} onProspect={()=>setPanel({type:"prospect",co:c})} qual={q} hasFile={hf}/>:null):
-                    col.k==="qual"?<QBadge q={q}/>:
-                    col.k==="file"?(hf?<span style={{color:"#16a34a",fontSize:13}}>✓</span>:<span style={{color:"#e2e8f0",fontSize:13}}>—</span>):
-                    col.k==="status"?<SBadge s={c[col.k]}/>:
+                    {col.k==="status"?<SBadge s={c[col.k]}/>:
                     col.k==="priority"?<PBadge p={c[col.k]}/>:
                     col.k==="outsourcingPropensity"?<ODot v={c[col.k]}/>:
                     col.k==="revenue"?<span style={{fontWeight:600,fontVariantNumeric:"tabular-nums"}}>{c[col.k]}</span>:
                     col.k==="employees"||col.k==="sites"?<span style={{fontVariantNumeric:"tabular-nums"}}>{c[col.k].toLocaleString()}</span>:
-                    col.k==="name"?<span style={{fontWeight:600,color:"#0f172a"}}>{c[col.k]}</span>:
+                    col.k==="name"?<div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontWeight:600,color:"#0f172a"}}>{c[col.k]}</span>{q&&<QBadge q={q}/>}{hf&&<span style={{fontSize:10,color:"#0891b2"}} title="Prospect file started">📋</span>}</div>:
                     c[col.k]}
                   </td>)}
+                  {/* Overlay buttons */}
+                  {isHov&&<td style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",display:"flex",gap:6,zIndex:5}}>
+                    <button onClick={()=>setPanel({type:"prequal",co:c})} style={{padding:"5px 12px",borderRadius:6,border:"none",background:"#be123c",color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:F,whiteSpace:"nowrap",boxShadow:"0 2px 8px rgba(0,0,0,.15)"}}>🎯 {q?"Edit score":"Pre-qual"}</button>
+                    <button onClick={()=>setPanel({type:"prospect",co:c})} style={{padding:"5px 12px",borderRadius:6,border:"none",background:"#0891b2",color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:F,whiteSpace:"nowrap",boxShadow:"0 2px 8px rgba(0,0,0,.15)"}}>📋 {hf?"Edit file":"Prospect file"}</button>
+                  </td>}
                 </tr>})}</tbody>
             </table>
           </div>
