@@ -8,7 +8,7 @@ const SEGMENTS = [
   "Healthcare & Social Care",
   "Banking & Financial Services",
   "Logistics & Transport",
-  "Real Estate",
+  "Real Estate", 
 ];
 
 const SUB_SEGMENTS = {
