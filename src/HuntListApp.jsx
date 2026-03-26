@@ -6,7 +6,7 @@ import*as d3 from"d3";
    Colors: Atalian blue #004B87, accent green #00A651, dark #0A1628
    SK accent #be123c (for scoring), neutral slate
    ═══════════════════════════════════════════════════════════════ */
-const C={primary:"#004B87",dark:"#0A1628",accent:"#00A651",score:"#be123c",light:"#f0f6fc",card:"#ffffff",text:"#0A1628",muted:"#64748b",border:"#e2e8f0",bgPage:"#f4f7fb"};
+const C={primary:"#E87722",dark:"#1a1a2e",accent:"#E87722",score:"#be123c",light:"#fef7f0",card:"#ffffff",text:"#1a1a2e",muted:"#6b7280",border:"#e5e7eb",bgPage:"#f9fafb"};
 const F="'DM Sans','Segoe UI',system-ui,sans-serif";
 
 /* ═══ DATA ═══ */
@@ -21,7 +21,7 @@ for(let i=0;i<n;i++){let nm;do{nm=p(pfx)+p(["a","o","ex","is","um","en","ia"])+"
 const ALL=genCo(1390);
 
 const WF=[{l:"Active NIP\n(>50m€)",v:4344,t:"total"},{l:"Non-priority",v:-894,t:"decrease"},{l:"Priority\nsegments",v:3450,t:"subtotal"},{l:"Not mapped",v:-261,t:"decrease"},{l:"P2 Opp.",v:-1613,t:"decrease"},{l:"P1 High",v:1576,t:"subtotal"},{l:"Public",v:-186,t:"decrease"},{l:"Private\n(Scope)",v:1390,t:"final"}];
-const SBD=[{s:"Industrial Production",n:885,c:"#004B87"},{s:"Retail & Consumer",n:211,c:"#f97316"},{s:"Healthcare & Social",n:18,c:"#a78bfa"},{s:"Banking & Financial",n:97,c:"#00A651"},{s:"Logistics & Transport",n:71,c:"#0891b2"},{s:"Real Estate",n:74,c:"#e11d48"}];
+const SBD=[{s:"Industrial Production",n:885,c:"#E87722"},{s:"Retail & Consumer",n:211,c:"#1a1a2e"},{s:"Healthcare & Social",n:18,c:"#6b7280"},{s:"Banking & Financial",n:97,c:"#f59e0b"},{s:"Logistics & Transport",n:71,c:"#d97706"},{s:"Real Estate",n:74,c:"#c2410c"}];
 
 const PQ=[
   {cat:"STRATEGIC FIT",color:"#e11d48",items:[
@@ -168,7 +168,7 @@ export default function App(){
     {/* ═══ HEADER ═══ */}
     <header style={{background:`linear-gradient(135deg,${C.dark} 0%,${C.primary} 100%)`,padding:"22px 36px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:14}}>
       <div style={{display:"flex",alignItems:"center",gap:14}}>
-        <div style={{width:40,height:40,borderRadius:10,background:C.accent,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:18,boxShadow:"0 4px 12px rgba(0,166,81,.3)"}}>A</div>
+        <div style={{width:40,height:40,borderRadius:10,background:C.primary,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:18,boxShadow:"0 4px 12px rgba(232,119,34,.3)"}}>A</div>
         <div><h1 style={{margin:0,fontSize:20,fontWeight:900,color:"#fff",letterSpacing:"-.02em"}}>Atalian Poland</h1><p style={{margin:0,fontSize:11,color:"rgba(255,255,255,.55)",fontWeight:500}}>Sales Excellence · Hunt List · Pre-qualification · Prospect File</p></div>
       </div>
       <div style={{display:"flex",gap:6,alignItems:"center"}}>
@@ -215,7 +215,7 @@ export default function App(){
                   </td>)}
                   {isHov&&<td style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",display:"flex",gap:5,zIndex:5}}>
                     <button onClick={()=>setPanel({type:"prequal",co:c})} style={{padding:"5px 12px",borderRadius:7,border:"none",background:C.score,color:"#fff",fontSize:10,fontWeight:800,cursor:"pointer",fontFamily:F,boxShadow:"0 2px 10px rgba(190,18,60,.3)",letterSpacing:".02em"}}>🎯 Pre-qual</button>
-                    <button onClick={()=>setPanel({type:"prospect",co:c})} style={{padding:"5px 12px",borderRadius:7,border:"none",background:C.primary,color:"#fff",fontSize:10,fontWeight:800,cursor:"pointer",fontFamily:F,boxShadow:"0 2px 10px rgba(0,75,135,.3)",letterSpacing:".02em"}}>📋 Prospect</button>
+                    <button onClick={()=>setPanel({type:"prospect",co:c})} style={{padding:"5px 12px",borderRadius:7,border:"none",background:C.dark,color:"#fff",fontSize:10,fontWeight:800,cursor:"pointer",fontFamily:F,boxShadow:"0 2px 10px rgba(26,26,46,.3)",letterSpacing:".02em"}}>📋 Prospect</button>
                   </td>}
                 </tr>})}</tbody>
             </table>
