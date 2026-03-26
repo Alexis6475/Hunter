@@ -46,12 +46,14 @@ function DonutChart({data,colorMap,size=180}){
 }
 
 function DynWaterfall({data}){
-  const{cRef,ref,w}=useChart((el,width)=>{
-    const svg=d3.select(el);svg.selectAll("*").remove();
-    const total=data.length,p1=data.filter(c=>c.priority.includes("P1")).length,p2=total-p1,priv=data.filter(c=>c.ownership==="Private").length,pub=total-priv,ns=data.filter(c=>c.status==="New Suspect").length,cc=data.filter(c=>c.status==="Current Client").length,lost=data.filter(c=>c.status.includes("Lost")).length;
+  const ref=useRef(),cRef=useRef(),[ww,setWW]=useState(400);
+  useEffect(()=>{const ro=new ResizeObserver(e=>{const w=e[0]?.contentRect.width;if(w>50)setWW(w)});if(cRef.current)ro.observe(cRef.current);return()=>ro.disconnect()},[]);
+  const total=data.length,p1=data.filter(c=>c.priority.includes("P1")).length,p2=total-p1,priv=data.filter(c=>c.ownership==="Private").length,pub=total-priv,ns=data.filter(c=>c.status==="New Suspect").length,cc=data.filter(c=>c.status==="Current Client").length,lost=data.filter(c=>c.status.includes("Lost")).length;
+  useEffect(()=>{
+    if(!ref.current)return;const svg=d3.select(ref.current);svg.selectAll("*").remove();
     const steps=[{l:"Total",v:total,t:"total"},{l:"P2",v:-p2,t:"dec"},{l:"P1",v:p1,t:"sub"},{l:"Public",v:-pub,t:"dec"},{l:"Private",v:priv,t:"acc"},{l:"Current",v:-cc,t:"dec"},{l:"Lost",v:-lost,t:"dec"},{l:"Suspects",v:ns,t:"fin"}];
-    const h=260,m={top:25,right:10,bottom:50,left:45},iw=width-m.left-m.right,ih=h-m.top-m.bottom;
-    const g=svg.attr("viewBox",`0 0 ${width} ${h}`).append("g").attr("transform",`translate(${m.left},${m.top})`);
+    const h=260,m={top:25,right:10,bottom:50,left:45},iw=ww-m.left-m.right,ih=h-m.top-m.bottom;
+    const g=svg.attr("viewBox",`0 0 ${ww} ${h}`).append("g").attr("transform",`translate(${m.left},${m.top})`);
     const x=d3.scaleBand().domain(steps.map(d=>d.l)).range([0,iw]).padding(.18);
     const mx=Math.max(...steps.filter(s=>s.v>0).map(s=>s.v))*1.15;
     const y=d3.scaleLinear().domain([0,mx]).range([ih,0]);
@@ -62,7 +64,7 @@ function DynWaterfall({data}){
     bg.append("text").attr("x",d=>x(d.l)+x.bandwidth()/2).attr("y",d=>y(Math.max(d.y0,d.y1))-5).attr("text-anchor","middle").attr("font-size",10).attr("font-weight",800).attr("fill",Dk).attr("opacity",0).text(d=>Math.abs(d.v).toLocaleString()).transition().duration(250).delay((_,i)=>i*60+350).attr("opacity",1);
     g.append("g").attr("transform",`translate(0,${ih})`).call(d3.axisBottom(x).tickSize(0)).selectAll("text").attr("font-size",9).attr("fill","#9ca3af");g.selectAll(".domain").remove();
     g.append("g").call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(","))).selectAll("text").attr("font-size",9).attr("fill","#9ca3af");g.selectAll(".tick line").attr("stroke","#f3f4f6");g.selectAll(".domain").remove();
-  },[data]);
+  },[total,p1,p2,priv,pub,ns,cc,lost,ww]);
   return<div ref={cRef} style={{width:"100%"}}><svg ref={ref} style={{width:"100%",height:"auto"}}/></div>;
 }
 
