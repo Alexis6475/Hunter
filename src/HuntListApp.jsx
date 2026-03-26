@@ -281,17 +281,17 @@ function PrequalPanel({company,storage,fontStack,onClose}){
    MAIN APP
    ═══════════════════════════════════════════════════════════════ */
 const COLS=[
-  {key:"name",label:"Company Name",w:200},
-  {key:"segment",label:"Segment",w:160},
-  {key:"region",label:"Region",w:120},
+  {key:"name",label:"Company Name",w:210},
+  {key:"segment",label:"Segment",w:170},
+  {key:"subSegment",label:"Sub-segment",w:150},
+  {key:"region",label:"Region",w:130},
   {key:"priority",label:"Priority",w:120},
   {key:"status",label:"Status",w:130},
-  {key:"revenue",label:"Revenue (m€)",w:100},
-  {key:"employees",label:"Employees",w:90},
+  {key:"revenue",label:"Revenue (m€)",w:110},
+  {key:"profit",label:"Profit (%)",w:85},
+  {key:"employees",label:"Employees",w:95},
   {key:"sites",label:"Sites",w:70},
-  {key:"outsourcingPropensity",label:"Outsourcing",w:95},
-  {key:"qualification",label:"Qualification",w:100},
-  {key:"action",label:"",w:80},
+  {key:"qualification",label:"Qualification",w:140},
 ];
 
 export default function HuntListApp(){
@@ -343,7 +343,6 @@ export default function HuntListApp(){
         <p style={{margin:0,fontSize:"13px",color:"#94a3b8",marginTop:4}}>Hunt list · Pre-qualification · Commercial strategy tools</p>
       </div>
       <div style={{display:"flex",gap:6,alignItems:"center"}}>
-        {storage.scoredCount>0&&<span style={{fontSize:"12px",color:"#94a3b8",marginRight:8}}>{storage.scoredCount} scored</span>}
         {VIEWS.map(v=><button key={v.id} onClick={()=>{setView(v.id);setPage(0)}} style={{padding:"8px 16px",borderRadius:"8px",border:"none",cursor:"pointer",fontSize:"13px",fontWeight:600,fontFamily:fontStack,background:view===v.id?"#be123c":"rgba(255,255,255,0.08)",color:view===v.id?"#fff":"#94a3b8",transition:"all 0.2s"}}>{v.label}</button>)}
       </div>
     </header>
@@ -394,17 +393,16 @@ export default function HuntListApp(){
         <div style={{background:"#fff",borderRadius:"14px",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,0.05)",border:"1px solid #f1f5f9"}}>
           <div style={{overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:"12px"}}>
-              <thead><tr>{COLS.map(col=><th key={col.key} onClick={()=>col.key!=="action"&&col.key!=="qualification"&&handleSort(col.key)} style={{padding:"12px 14px",textAlign:"left",fontSize:"11px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:sortKey===col.key?"#be123c":"#94a3b8",borderBottom:"2px solid #f1f5f9",cursor:col.key==="action"||col.key==="qualification"?"default":"pointer",userSelect:"none",whiteSpace:"nowrap",minWidth:col.w,background:"#fafbfc"}}>{col.label} {sortKey===col.key?(sortDir==="asc"?"↑":"↓"):""}</th>)}</tr></thead>
+              <thead><tr>{COLS.map(col=><th key={col.key} onClick={()=>col.key!=="qualification"&&handleSort(col.key)} style={{padding:"12px 14px",textAlign:"left",fontSize:"11px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:sortKey===col.key?"#be123c":"#94a3b8",borderBottom:"2px solid #f1f5f9",cursor:col.key==="qualification"?"default":"pointer",userSelect:"none",whiteSpace:"nowrap",minWidth:col.w,background:"#fafbfc"}}>{col.label} {sortKey===col.key?(sortDir==="asc"?"↑":"↓"):""}</th>)}</tr></thead>
               <tbody>{paged.map((c,i)=>{
                 const qual=storage.getQualForId(c.id);
-                return<tr key={c.id} style={{background:i%2===0?"#fff":"#fafbfc",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background="#f0f9ff"} onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"#fff":"#fafbfc"}>
+                return<tr key={c.id} onClick={()=>setScoringCompany(c)} style={{background:i%2===0?"#fff":"#fafbfc",transition:"background 0.15s",cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.background="#f0f9ff"} onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"#fff":"#fafbfc"}>
                   {COLS.map(col=><td key={col.key} style={{padding:"10px 14px",borderBottom:"1px solid #f1f5f9",whiteSpace:"nowrap",color:"#334155"}}>
-                    {col.key==="action"?<button onClick={()=>setScoringCompany(c)} style={{padding:"4px 12px",borderRadius:"6px",border:"1px solid #e2e8f0",background:"#fff",color:"#1e293b",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:fontStack,transition:"all 0.15s"}} onMouseEnter={e=>{e.currentTarget.style.background="#be123c";e.currentTarget.style.color="#fff";e.currentTarget.style.borderColor="#be123c"}} onMouseLeave={e=>{e.currentTarget.style.background="#fff";e.currentTarget.style.color="#1e293b";e.currentTarget.style.borderColor="#e2e8f0"}}>{qual?"Edit":"Score"}</button>:
-                    col.key==="qualification"?<QualBadge qual={qual}/>:
+                    {col.key==="qualification"?<QualBadge qual={qual}/>:
                     col.key==="status"?<StatusBadge status={c[col.key]}/>:
                     col.key==="priority"?<PriorityBadge priority={c[col.key]}/>:
-                    col.key==="outsourcingPropensity"?<PropensityDot value={c[col.key]}/>:
-                    col.key==="revenue"||col.key==="potentialSpend"?<span style={{fontWeight:600,fontVariantNumeric:"tabular-nums"}}>{c[col.key]}</span>:
+                    col.key==="revenue"?<span style={{fontWeight:600,fontVariantNumeric:"tabular-nums"}}>{c[col.key]}</span>:
+                    col.key==="profit"?<span style={{fontVariantNumeric:"tabular-nums"}}>{c[col.key]}%</span>:
                     col.key==="employees"||col.key==="sites"?<span style={{fontVariantNumeric:"tabular-nums"}}>{c[col.key].toLocaleString()}</span>:
                     col.key==="name"?<span style={{fontWeight:600,color:"#0f172a"}}>{c[col.key]}</span>:
                     c[col.key]}
