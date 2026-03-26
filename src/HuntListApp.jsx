@@ -109,11 +109,11 @@ function ProspectPanel({co,store,onClose}){
 }
 
 /* ═══ EDITABLE CELL ═══ */
-function EditCell({value,onSave,type,options}){
+function EditCell({value,onSave,type,options,render}){
   var[editing,setEditing]=useState(false);var[val,setVal]=useState(value);var ref=useRef();
   useEffect(function(){if(editing&&ref.current){ref.current.focus();if(ref.current.select)ref.current.select()}},[editing]);
   useEffect(function(){setVal(value)},[value]);
-  if(!editing)return<span onDoubleClick={function(){setEditing(true)}} style={{cursor:"default"}}>{typeof value==="number"?value.toLocaleString():value}</span>;
+  if(!editing)return<span onDoubleClick={function(){setEditing(true)}} style={{cursor:"default"}} title="Double-click to edit">{render?render(value):(typeof value==="number"?value.toLocaleString():value)}</span>;
   var done=function(){setEditing(false);if(val!==value)onSave(type==="number"?Number(val):val)};
   if(options)return<select ref={ref} value={val} onChange={function(e){setVal(e.target.value);onSave(e.target.value);setEditing(false)}} onBlur={function(){setEditing(false)}} style={Object.assign({},inp,{width:"auto",fontSize:12,padding:"2px 6px"})}>{options.map(function(o){return<option key={o} value={o}>{o}</option>})}</select>;
   return<input ref={ref} type={type==="number"?"number":"text"} value={val} onChange={function(e){setVal(e.target.value)}} onBlur={done} onKeyDown={function(e){if(e.key==="Enter")done()}} style={Object.assign({},inp,{width:type==="number"?70:140,fontSize:12,padding:"2px 6px"})}/>;
@@ -190,15 +190,15 @@ export default function App(){
             <tbody>{pg.map(function(c,i){var q=store.qual(c.id);var hf=store.hasFile(c.id);var isH=hovRow===c.id;
               return<tr key={c.id} style={{background:isH?"#eef2ff":i%2===0?"#fff":"#fafafa",transition:"background .1s",position:"relative"}} onMouseEnter={function(){setHovRow(c.id)}} onMouseLeave={function(){setHovRow(null)}}>
                 {COLS.map(function(col){return<td key={col.k} style={{padding:"8px 12px",borderBottom:"1px solid #f0f0f5",whiteSpace:"nowrap",color:"#374151"}}>
-                  {col.k==="name"?<div style={{display:"flex",alignItems:"center"}}><EditCell value={c.name} onSave={function(v){updateCo(c.id,"name",v)}}/>{q&&<QBadge q={q}/>}{hf&&<span style={{marginLeft:3,fontSize:9,color:P}}>📋</span>}</div>:
+                  {col.k==="name"?<div style={{display:"flex",alignItems:"center"}}><EditCell value={c.name} onSave={function(v){updateCo(c.id,"name",v)}} render={function(v){return<span style={{fontWeight:700,color:Dk}}>{v}</span>}}/>{q&&<QBadge q={q}/>}{hf&&<span style={{marginLeft:3,fontSize:9,color:P}}>📋</span>}</div>:
                   col.k==="segment"?<EditCell value={c.segment} onSave={function(v){updateCo(c.id,"segment",v)}} options={SEGMENTS}/>:
                   col.k==="region"?<EditCell value={c.region} onSave={function(v){updateCo(c.id,"region",v)}} options={REGIONS}/>:
-                  col.k==="priority"?<EditCell value={c.priority} onSave={function(v){updateCo(c.id,"priority",v)}} options={PRIORITIES}/>:
-                  col.k==="status"?<EditCell value={c.status} onSave={function(v){updateCo(c.id,"status",v)}} options={STATUSES}/>:
-                  col.k==="revenue"?<EditCell value={c.revenue} onSave={function(v){updateCo(c.id,"revenue",v)}} type="number"/>:
-                  col.k==="employees"?<EditCell value={c.employees} onSave={function(v){updateCo(c.id,"employees",v)}} type="number"/>:
+                  col.k==="priority"?<EditCell value={c.priority} onSave={function(v){updateCo(c.id,"priority",v)}} options={PRIORITIES} render={function(v){return<PBadge p={v}/>}}/>:
+                  col.k==="status"?<EditCell value={c.status} onSave={function(v){updateCo(c.id,"status",v)}} options={STATUSES} render={function(v){return<SBadge s={v}/>}}/>:
+                  col.k==="revenue"?<EditCell value={c.revenue} onSave={function(v){updateCo(c.id,"revenue",v)}} type="number" render={function(v){return<span style={{fontWeight:700,fontVariantNumeric:"tabular-nums"}}>{Number(v).toLocaleString()}</span>}}/>:
+                  col.k==="employees"?<EditCell value={c.employees} onSave={function(v){updateCo(c.id,"employees",v)}} type="number" render={function(v){return<span style={{fontVariantNumeric:"tabular-nums"}}>{Number(v).toLocaleString()}</span>}}/>:
                   col.k==="sites"?<EditCell value={c.sites} onSave={function(v){updateCo(c.id,"sites",v)}} type="number"/>:
-                  col.k==="outsourcingPropensity"?<EditCell value={c.outsourcingPropensity} onSave={function(v){updateCo(c.id,"outsourcingPropensity",v)}} options={["High","Medium","Low"]}/>:
+                  col.k==="outsourcingPropensity"?<EditCell value={c.outsourcingPropensity} onSave={function(v){updateCo(c.id,"outsourcingPropensity",v)}} options={["High","Medium","Low"]} render={function(v){return<ODot v={v}/>}}/>:
                   c[col.k]}
                 </td>})}
                 {isH&&<td style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",display:"flex",gap:4,zIndex:5}}>
