@@ -207,13 +207,20 @@ export default function App(){
         <div style={{position:"relative"}}>
           <style>{`
             .hunt-scroll::-webkit-scrollbar{height:10px}
-            .hunt-scroll::-webkit-scrollbar-track{background:#f3f4f6;border-radius:10px;margin:0 180px 0 0}
+            .hunt-scroll::-webkit-scrollbar-track{background:#f3f4f6;border-radius:10px}
             .hunt-scroll::-webkit-scrollbar-thumb{background:${P};border-radius:10px;border:2px solid #f3f4f6}
             .hunt-scroll::-webkit-scrollbar-thumb:hover{background:#c65a10}
             .hunt-scroll{scrollbar-width:thin;scrollbar-color:${P} #f3f4f6}
+            .hunt-top-scroll::-webkit-scrollbar{height:10px}
+            .hunt-top-scroll::-webkit-scrollbar-track{background:#f3f4f6;border-radius:10px}
+            .hunt-top-scroll::-webkit-scrollbar-thumb{background:${P};border-radius:10px;border:2px solid #f3f4f6}
+            .hunt-top-scroll::-webkit-scrollbar-thumb:hover{background:#c65a10}
+            .hunt-top-scroll{scrollbar-width:thin;scrollbar-color:${P} #f3f4f6}
           `}</style>
+          {/* Top scrollbar - syncs with table */}
+          <div className="hunt-top-scroll" ref={function(el){if(el)el._isTop=true}} onScroll={function(e){var bot=e.target.parentElement.querySelector('.hunt-scroll');if(bot&&!e.target._lock){bot._lock=true;bot.scrollLeft=e.target.scrollLeft;setTimeout(function(){bot._lock=false},20)}}} style={{overflowX:"scroll",overflowY:"hidden",marginBottom:4}}><div style={{height:1,width:3200}}></div></div>
           <div style={Object.assign({},cd,{overflow:"hidden"})}>
-            <div className="hunt-scroll" style={{overflowX:"scroll",overflowY:"visible",paddingBottom:2}}>
+            <div className="hunt-scroll" onScroll={function(e){var top=e.target.parentElement.parentElement.querySelector('.hunt-top-scroll');if(top&&!e.target._lock){top._lock=true;top.scrollLeft=e.target.scrollLeft;setTimeout(function(){top._lock=false},20)}}} style={{overflowX:"scroll",overflowY:"visible",paddingBottom:2}}>
               <table style={{width:"max-content",minWidth:"100%",borderCollapse:"collapse",fontSize:12}}>
                 <thead><tr>{COLS.map(function(c){return<th key={c.k} onClick={function(){hs(c.k)}} style={{padding:"9px 12px",textAlign:"left",fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:".08em",color:sortK===c.k?P:"#9ca3af",borderBottom:"2px solid #f0f0f5",cursor:"pointer",userSelect:"none",whiteSpace:"nowrap",minWidth:c.w,background:"#fafafa",position:"sticky",top:0,zIndex:2}}>{c.l}{sortK===c.k?(sortD==="asc"?" ↑":" ↓"):""}</th>})}<th style={{position:"sticky",right:0,background:"#fafafa",borderBottom:"2px solid #f0f0f5",minWidth:180,zIndex:3}}></th></tr></thead>
                 <tbody>{pg.map(function(c,i){var q=store.qual(c.id);var hf=store.hasFile(c.id);var isH=hovRow===c.id;var bg=isH?"#eef2ff":i%2===0?"#fff":"#fafafa";
