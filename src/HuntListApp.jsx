@@ -25,7 +25,8 @@ function genCo(n){
     for(var si=0;si<skeys.length;si++){cum+=SEG_W[skeys[si]];if(rnd<=cum){seg=skeys[si];break}}
     var revPLN=rf(500000000,82000000000);var profitPLN=revPLN*rf(0.05,0.7);var revBnEur=+(revPLN/4166000000).toFixed(2);var profitBnEur=+(profitPLN/4166000000).toFixed(2);var profitPct=+(profitPLN/revPLN*100).toFixed(1);var potSpend=+(revBnEur*rf(0.3,0.6)).toFixed(2);
     var nRevBnEur=rf(1,20),nProfitPct=rf(1,11),nOutsrc=rf(3,5),nPotSpend=rf(1,22),nRevBnEur2=rf(1,10),nProfitPct2=rf(1,11),nOutsrc2=rf(3,5),nPotSpend2=rf(1,10);
-    co.push({id:i+1,nip:r(1000000000,9999999999)+"",name:nm,segment:seg,subSegment:p(SUB_SEG[seg]),segPrio:"Priority segment",subSegPrio:"P1 - High priority market",ownership:Math.random()<.2?"Public":"Private",revenuePLN:Math.round(revPLN),profitPLN:Math.round(profitPLN),profitBnEur:profitBnEur,revenueBnEur:revBnEur,profitPct:profitPct,outsourcingPropensity:Math.random()<.6?4.75:5,potentialSpendMEur:potSpend,cluster:Math.random()<.96?"New Prospect":"Current Client",nRevBnEur:+nRevBnEur.toFixed(2),nProfitPct:+nProfitPct.toFixed(2),nOutsrc:+nOutsrc.toFixed(2),nPotSpend:+nPotSpend.toFixed(2),nRevBnEur2:+nRevBnEur2.toFixed(2),nProfitPct2:+nProfitPct2.toFixed(2),nOutsrc2:+nOutsrc2.toFixed(2),nPotSpend2:+nPotSpend2.toFixed(2),score:rf(1.5,5),region:p(REGIONS),contactName:""});
+    var isPrioritySeg=Math.random()<.8;var isMapped=Math.random()<.92;var isP1=Math.random()<.7;
+    co.push({id:i+1,nip:r(1000000000,9999999999)+"",name:nm,segment:seg,subSegment:p(SUB_SEG[seg]),segPriority:isPrioritySeg?"Priority":"Non-priority",mapped:isMapped,priority:isP1?"P1 - High priority":"P2 - Opportunistic",ownership:Math.random()<.13?"Public":"Private",revenuePLN:Math.round(revPLN),profitPLN:Math.round(profitPLN),profitBnEur:profitBnEur,revenueBnEur:revBnEur,profitPct:profitPct,outsourcingPropensity:Math.random()<.6?4.75:5,potentialSpendMEur:potSpend,cluster:Math.random()<.96?"New Prospect":"Current Client",nRevBnEur:+nRevBnEur.toFixed(2),nProfitPct:+nProfitPct.toFixed(2),nOutsrc:+nOutsrc.toFixed(2),nPotSpend:+nPotSpend.toFixed(2),nRevBnEur2:+nRevBnEur2.toFixed(2),nProfitPct2:+nProfitPct2.toFixed(2),nOutsrc2:+nOutsrc2.toFixed(2),nPotSpend2:+nPotSpend2.toFixed(2),score:rf(1.5,5),region:p(REGIONS),contactName:""});
   }return co}
 
 var PQ=[{cat:"STRATEGIC FIT",color:"#e11d48",items:[{id:"intent",name:"Intent to outsource FM",desc:"Determine whether the client is considering outsourcing part or all of their FM services and whether there is a real trigger for change",q:["Are you currently considering outsourcing any part of your FM services?","Is this a new need or are you reviewing your current setup?","What is driving this reflection?"],w:3},{id:"scope",name:"Offer / service scope",desc:"Clarify which FM services are in scope (i.e. cleaning, tech. FM, etc.) and whether the need is for single services, bundled services, or integrated FM",q:["Which services are you looking for?","Are you looking for one provider for all services or only selected services?","Could the scope expand over time?"],w:2}]},{cat:"OPERATIONAL FIT",color:"#2563eb",items:[{id:"ability",name:"Ability of AP to respond",desc:"Check whether the opportunity fits AP capabilities in terms of services, scale, complexity, SLAs, technical needs, and compliance requirements",q:["What are the key service requirements?","Are there any technical, safety, or compliance constraints?","What service levels would you expect from a provider?"],w:3},{id:"geography",name:"Geography / site footprint",desc:"Understand where the services are needed and whether the account is local, regional, national, or multi-site",q:["Where are the sites located?","How many sites are involved?","Is this a single-site or multi-site opportunity?","Do all locations need to be covered?"],w:2}]},{cat:"LEAD QUALITY",color:"#f59e0b",items:[{id:"competitor",name:"Competitor in place / share of wallet available",desc:"Identify whether another provider is already in place and how much of the account could realistically be won",q:["Who currently provides these services?","How satisfied are you with the current provider?","Would you consider replacing or complementing them?","Which parts of the scope could be open for review?"],w:2},{id:"interest",name:"Interest shown during the call",desc:"Evaluate how engaged the client is and whether there is real openness to continue the discussion",q:["Would you be open to a follow-up discussion with our sales team?","How important is this topic for you today?","Would you like us to come back with a more detailed discussion?"],w:2},{id:"need",name:"Detailed need / pain points",desc:"Check whether the client already has a clear view of the business need behind the opportunity",q:["What challenges are you facing with your current FM setup?","What would you like to improve?","What would an ideal solution look like?","What are your top decision criteria?"],w:1}]}];
@@ -47,11 +48,20 @@ function Waterfall(props){
   useEffect(function(){var ro=new ResizeObserver(function(e){var w=e[0]&&e[0].contentRect.width;if(w>50)setWW(w)});if(cRef.current)ro.observe(cRef.current);return function(){ro.disconnect()}},[]);
   useEffect(function(){
     if(!ref.current||!props.total)return;var svg=d3.select(ref.current);svg.selectAll("*").remove();
-    var steps=[{l:"Active NIP\ncodes",v:4344,t:"total"},{l:"Non-priority\nsegments",v:-894,t:"dec"},{l:"Priority\nsegments",v:3450,t:"sub"},{l:"Not\nmapped",v:-261,t:"dec"},{l:"P2 Opp.",v:-1613,t:"dec"},{l:"P1 High\npriority",v:1576,t:"sub"},{l:"Public",v:-186,t:"dec"},{l:"Private\n(scope)",v:props.priv||1390,t:"fin"}];
-    var h=250,m={top:25,right:10,bottom:50,left:45},iw=ww-m.left-m.right,ih=h-m.top-m.bottom;
+    var steps=[
+      {l:"Active NIP\ncodes",v:props.total,t:"total"},
+      {l:"Non-priority",v:-props.nonPrio,t:"dec"},
+      {l:"Priority\nsegments",v:props.prio,t:"sub"},
+      {l:"Not\nmapped",v:-props.notMapped,t:"dec"},
+      {l:"P2 Opp.",v:-props.p2,t:"dec"},
+      {l:"P1 High\npriority",v:props.p1,t:"sub"},
+      {l:"Public",v:-props.pub,t:"dec"},
+      {l:"Private\n(scope)",v:props.priv,t:"fin"}
+    ];
+    var h=250,m={top:25,right:10,bottom:55,left:45},iw=ww-m.left-m.right,ih=h-m.top-m.bottom;
     var g=svg.attr("viewBox","0 0 "+ww+" "+h).append("g").attr("transform","translate("+m.left+","+m.top+")");
     var x=d3.scaleBand().domain(steps.map(function(d){return d.l})).range([0,iw]).padding(.18);
-    var mx=5000;
+    var mx=props.total*1.15;
     var y=d3.scaleLinear().domain([0,mx]).range([ih,0]);
     var run=0;var bars=steps.map(function(s){var y0,y1;if(s.t==="total"||s.t==="acc"||s.t==="fin"){y0=0;y1=Math.abs(s.v);run=Math.abs(s.v)}else{y0=run+s.v;y1=run;run=y0}return{l:s.l,v:s.v,t:s.t,y0:y0,y1:y1}});
     for(var i=0;i<bars.length-1;i++){var c=bars[i],n=bars[i+1],fy=(c.t==="dec")?y(c.y0):y(c.y1);g.append("line").attr("x1",x(c.l)+x.bandwidth()).attr("x2",x(n.l)).attr("y1",fy).attr("y2",fy).attr("stroke","#d1d5db").attr("stroke-dasharray","3,3")}
@@ -60,7 +70,7 @@ function Waterfall(props){
     bg.append("text").attr("x",function(d){return x(d.l)+x.bandwidth()/2}).attr("y",function(d){return y(Math.max(d.y0,d.y1))-5}).attr("text-anchor","middle").attr("font-size",11).attr("font-weight",800).attr("fill",Dk).attr("opacity",0).text(function(d){return Math.abs(d.v).toLocaleString()}).transition().duration(300).delay(function(_,i){return i*80+400}).attr("opacity",1);
     g.append("g").attr("transform","translate(0,"+ih+")").call(d3.axisBottom(x).tickSize(0)).selectAll("text").attr("font-size",9).attr("fill","#9ca3af");g.selectAll(".domain").remove();
     g.append("g").call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(","))).selectAll("text").attr("font-size",9).attr("fill","#9ca3af");g.selectAll(".tick line").attr("stroke","#f3f4f6");g.selectAll(".domain").remove();
-  },[props.priv,ww]);
+  },[props.total,props.nonPrio,props.prio,props.notMapped,props.p2,props.p1,props.pub,props.priv,ww]);
   return<div ref={cRef} style={{width:"100%"}}><svg ref={ref} style={{width:"100%",height:"auto"}}/></div>;
 }
 
@@ -113,10 +123,12 @@ function EditCell(props){var value=props.value,onSave=props.onSave,type=props.ty
 var COLS=[
   {k:"nip",l:"NIP Code",w:110},
   {k:"name",l:"Company",w:200},
+  {k:"score",l:"Score",w:65},
   {k:"segment",l:"Segment",w:160},
   {k:"subSegment",l:"Sub-segment",w:180},
-  {k:"segPrio",l:"Seg. Prioritization",w:130},
-  {k:"subSegPrio",l:"Sub-seg Prioritization",w:150},
+  {k:"segPriority",l:"Seg. Priority",w:100},
+  {k:"mapped",l:"Mapped",w:70},
+  {k:"priority",l:"Priority",w:120},
   {k:"ownership",l:"Pub/Priv",w:75},
   {k:"revenuePLN",l:"Revenue (PLN)",w:120},
   {k:"profitPLN",l:"Profit (PLN)",w:120},
@@ -126,6 +138,7 @@ var COLS=[
   {k:"outsourcingPropensity",l:"Outsrc. Propensity",w:110},
   {k:"potentialSpendMEur",l:"Pot. Spend (m€)",w:110},
   {k:"cluster",l:"Cluster",w:115},
+  {k:"region",l:"Region",w:110},
   {k:"nRevBnEur",l:"N.Rev (bn€)",w:90},
   {k:"nProfitPct",l:"N.Profit %",w:80},
   {k:"nOutsrc",l:"N.Outsrc",w:75},
@@ -134,18 +147,17 @@ var COLS=[
   {k:"nProfitPct2",l:"N.Profit2 %",w:85},
   {k:"nOutsrc2",l:"N.Outsrc2",w:80},
   {k:"nPotSpend2",l:"N.Pot.Spend2",w:90},
-  {k:"score",l:"Score",w:65},
   {k:"contactName",l:"Key Contact",w:130},
 ];
 
 export default function App(){
-  var[companies,setCo]=useState(function(){return genCo(50)});
+  var[companies,setCo]=useState(function(){return genCo(4344)});
   var[view,setView]=useState("dashboard");var[search,setSearch]=useState("");
   var[segF,setSegF]=useState("All");var[cluF,setCluF]=useState("All");var[regF,setRegF]=useState("All");var[ownF,setOwnF]=useState("All");
   var[sortK,setSortK]=useState("revenueBnEur");var[sortD,setSortD]=useState("desc");
   var[page,setPage]=useState(0);var[panel,setPanel]=useState(null);var[hovRow,setHovRow]=useState(null);
   var[showColPicker,setShowColPicker]=useState(false);
-  var[visibleCols,setVisibleCols]=useState(function(){return["nip","name","segment","subSegment","ownership","revenueBnEur","profitPct","outsourcingPropensity","potentialSpendMEur","cluster","score","contactName"]});
+  var[visibleCols,setVisibleCols]=useState(function(){return["nip","name","score","segment","segPriority","priority","ownership","revenueBnEur","profitPct","outsourcingPropensity","potentialSpendMEur","cluster","region"]});
   var store=useStore();var PS=30;
 
   var updateCo=useCallback(function(id,key,val){setCo(function(prev){return prev.map(function(c){if(c.id===id){var n=Object.assign({},c);n[key]=val;return n}return c})})},[]);
@@ -174,8 +186,8 @@ export default function App(){
     {panel&&panel.type==="prospect"&&<ProspectPanel co={panel.co} store={store} onClose={function(){setPanel(null)}}/>}
 
     <header style={{background:Dk,padding:"12px 28px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-      <div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:32,height:32,borderRadius:8,background:P,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:14}}>A</div><div style={{fontSize:14,fontWeight:800,color:"#fff"}}>ATALIAN <span style={{fontWeight:400,opacity:.5}}>Poland</span></div></div>
-      <div style={{display:"flex",gap:3}}>{[{id:"dashboard",lb:"Dashboard"},{id:"table",lb:"Hunt List"}].map(function(v){return<button key={v.id} onClick={function(){setView(v.id);setPage(0)}} style={{padding:"5px 14px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,fontFamily:F,background:view===v.id?P:"transparent",color:view===v.id?"#fff":"rgba(255,255,255,.5)"}}>{v.lb}</button>})}</div>
+      <div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:32,height:32,borderRadius:8,background:P,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:14}}>A</div><div><div style={{fontSize:14,fontWeight:800,color:"#fff"}}>ATALIAN <span style={{fontWeight:400,opacity:.5}}>Poland</span></div><div style={{fontSize:9,color:"rgba(255,255,255,.3)"}}>Global Services · Facility Management</div></div></div>
+      <div style={{display:"flex",gap:3}}>{[{id:"dashboard",lb:"📊 Dashboard"},{id:"table",lb:"📋 Hunt List"},{id:"guide",lb:"📖 How to use"}].map(function(v){return<button key={v.id} onClick={function(){setView(v.id);setPage(0)}} style={{padding:"5px 14px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,fontFamily:F,background:view===v.id?P:"transparent",color:view===v.id?"#fff":"rgba(255,255,255,.5)"}}>{v.lb}</button>})}</div>
     </header>
 
     <main style={{padding:"18px 24px 36px",maxWidth:1400,margin:"0 auto"}}>
@@ -188,13 +200,58 @@ export default function App(){
 
       {view==="dashboard"?<div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
-          <div style={Object.assign({},cd,{padding:"18px 20px"})}><h3 style={{margin:"0 0 8px",fontSize:14,fontWeight:800}}>Pipeline Funnel</h3><Waterfall total={filtered.length} pub={pubc} priv={privc} cc={ccc} np={npc}/></div>
+          <div style={Object.assign({},cd,{padding:"18px 20px"})}><h3 style={{margin:"0 0 8px",fontSize:14,fontWeight:800}}>Pipeline Funnel</h3><Waterfall total={companies.length} nonPrio={companies.filter(function(c){return c.segPriority==="Non-priority"}).length} prio={companies.filter(function(c){return c.segPriority==="Priority"}).length} notMapped={companies.filter(function(c){return c.segPriority==="Priority"&&!c.mapped}).length} p2={companies.filter(function(c){return c.segPriority==="Priority"&&c.mapped&&c.priority.includes("P2")}).length} p1={companies.filter(function(c){return c.segPriority==="Priority"&&c.mapped&&c.priority.includes("P1")}).length} pub={companies.filter(function(c){return c.segPriority==="Priority"&&c.mapped&&c.priority.includes("P1")&&c.ownership==="Public"}).length} priv={companies.filter(function(c){return c.segPriority==="Priority"&&c.mapped&&c.priority.includes("P1")&&c.ownership==="Private"}).length}/></div>
           <div style={Object.assign({},cd,{padding:"18px 20px"})}><h3 style={{margin:"0 0 8px",fontSize:14,fontWeight:800}}>By Segment</h3><HBar items={segItems} colorMap={segCM}/></div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
           <div style={Object.assign({},cd,{padding:"18px 20px"})}><h3 style={{margin:"0 0 12px",fontSize:14,fontWeight:800}}>By Cluster</h3><div style={{display:"flex",alignItems:"center",gap:16}}><MiniDonut items={cluItems} colorMap={CLUC}/><div style={{display:"flex",flexDirection:"column",gap:6}}>{cluItems.map(function(d){return<div key={d.k} style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:10,height:10,borderRadius:3,background:CLUC[d.k]}}/><span style={{fontSize:11,color:"#6b7280"}}>{d.k}</span><span style={{fontSize:11,fontWeight:800,color:Dk,marginLeft:"auto"}}>{d.v}</span></div>})}</div></div></div>
           <div style={Object.assign({},cd,{padding:"18px 20px"})}><h3 style={{margin:"0 0 8px",fontSize:14,fontWeight:800}}>Revenue by Segment (bn€)</h3><HBar items={revItems} colorMap={revCM}/></div>
           <div style={Object.assign({},cd,{padding:"18px 20px"})}><h3 style={{margin:"0 0 8px",fontSize:14,fontWeight:800}}>By Region</h3><HBar items={regItems} colorMap={REGC}/></div>
+        </div>
+      </div>:
+      view==="guide"?<div style={{maxWidth:800,margin:"0 auto"}}>
+        <div style={Object.assign({},cd,{padding:"32px 36px",marginBottom:16})}>
+          <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:900,color:Dk}}>📖 How to Use This Tool</h2>
+          <p style={{margin:0,fontSize:13,color:"#6b7280"}}>A step-by-step guide to the Atalian Poland Sales Excellence platform</p>
+        </div>
+        <div style={Object.assign({},cd,{padding:"24px 28px",marginBottom:14})}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}><div style={{width:32,height:32,borderRadius:20,background:P,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>1</div><h3 style={{margin:0,fontSize:16,fontWeight:800,color:Dk}}>Hunt List — Your Target Companies</h3></div>
+          <p style={{margin:"0 0 8px",fontSize:13,color:"#374151",lineHeight:1.7}}>The <b>Hunt List</b> tab is your central database of all target companies in Poland. It contains every company with revenue above the threshold, across all prioritized segments.</p>
+          <ul style={{margin:"8px 0",paddingLeft:20,fontSize:13,color:"#374151",lineHeight:2}}>
+            <li><b>Filter</b> by Segment, Cluster, Region, or Ownership using the dropdowns</li>
+            <li><b>Sort</b> any column by clicking the column header</li>
+            <li><b>Show/hide columns</b> using the pill buttons at the top — toggle the data you need</li>
+            <li><b>Edit any cell</b> by double-clicking on it — changes are saved instantly</li>
+            <li><b>Search</b> for a company by name or NIP code</li>
+            <li>The <b>Score</b> column (3rd column) shows the prioritization score for each company</li>
+          </ul>
+        </div>
+        <div style={Object.assign({},cd,{padding:"24px 28px",marginBottom:14})}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}><div style={{width:32,height:32,borderRadius:20,background:"#e11d48",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>2</div><h3 style={{margin:0,fontSize:16,fontWeight:800,color:Dk}}>Pre-qualification Checklist — Score Your Prospects</h3></div>
+          <p style={{margin:"0 0 8px",fontSize:13,color:"#374151",lineHeight:1.7}}>When you hover over a company row, a <b>🎯 Pre-qual</b> button appears on the right. Click it to open the pre-qualification panel.</p>
+          <ul style={{margin:"8px 0",paddingLeft:20,fontSize:13,color:"#374151",lineHeight:2}}>
+            <li>Score each of the <b>7 criteria</b> from 1 to 5 during or after your call</li>
+            <li>Criteria are grouped into <b>Strategic Fit</b>, <b>Operational Fit</b>, and <b>Lead Quality</b></li>
+            <li>Each criterion has a <b>weight</b> — higher weight = more impact on final score</li>
+            <li>Expand <b>suggested questions</b> to guide your conversation with the prospect</li>
+            <li>Add <b>notes</b> for each criterion to capture key insights</li>
+            <li>The weighted score automatically classifies the lead as:<br/><span style={{color:"#16a34a",fontWeight:700}}>SQL (≥3.8)</span> — Sales Qualified Lead, ready for proposal<br/><span style={{color:"#f59e0b",fontWeight:700}}>MQL (≥2.5)</span> — Marketing Qualified Lead, needs nurturing<br/><span style={{color:"#ef4444",fontWeight:700}}>NR (&lt;2.5)</span> — Not Relevant, deprioritize</li>
+          </ul>
+        </div>
+        <div style={Object.assign({},cd,{padding:"24px 28px",marginBottom:14})}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}><div style={{width:32,height:32,borderRadius:20,background:"#2563eb",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>3</div><h3 style={{margin:0,fontSize:16,fontWeight:800,color:Dk}}>Prospect File — Track Your Interactions</h3></div>
+          <p style={{margin:"0 0 8px",fontSize:13,color:"#374151",lineHeight:1.7}}>Click the <b>📋 Prospect</b> button on any company row to open the prospect file. This is your CRM-lite for tracking all interactions.</p>
+          <ul style={{margin:"8px 0",paddingLeft:20,fontSize:13,color:"#374151",lineHeight:2}}>
+            <li><b>General Information</b> — Contact details, LinkedIn, job title (pre-filled from hunt list data)</li>
+            <li><b>Before Interaction</b> — Company profile, current provider, contract expiry, decision maker</li>
+            <li><b>During Interaction</b> — Meeting notes, expressed needs, pain points, objections, next steps</li>
+            <li><b>After Interaction</b> — Debrief, revised win probability, blocking points, follow-up actions</li>
+          </ul>
+          <p style={{margin:"8px 0 0",fontSize:13,color:"#374151",lineHeight:1.7}}>All data is <b>automatically saved</b> in your browser. You can also click the <b>Save</b> button for confirmation.</p>
+        </div>
+        <div style={Object.assign({},cd,{padding:"24px 28px"})}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}><div style={{width:32,height:32,borderRadius:20,background:Dk,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>4</div><h3 style={{margin:0,fontSize:16,fontWeight:800,color:Dk}}>Dashboard — Monitor Your Pipeline</h3></div>
+          <p style={{margin:0,fontSize:13,color:"#374151",lineHeight:1.7}}>The <b>Dashboard</b> shows a visual overview of your hunt list with dynamic charts. The <b>Pipeline Funnel</b> waterfall shows how the total universe of companies narrows down to your private P1 hunt scope. All charts update when you filter the data.</p>
         </div>
       </div>:
 
@@ -241,7 +298,10 @@ export default function App(){
                     var v=c[col.k];
                     if(col.k==="name")return<div style={{display:"flex",alignItems:"center"}}><EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} render={function(x){return<span style={{fontWeight:700,color:Dk}}>{x}</span>}}/>{q&&<QBadge q={q}/>}{hf&&<span style={{marginLeft:3,fontSize:9,color:P}}>📋</span>}</div>;
                     if(col.k==="cluster")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={CLUSTERS} render={function(x){return<ClBadge s={x}/>}}/>;
-                    if(col.k==="segment")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={SEGMENTS}/>;
+                    if(col.k==="segment")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={SEGMENTS} render={function(x){return<span style={{display:"inline-flex",alignItems:"center",gap:5}}><span style={{width:10,height:10,borderRadius:3,background:SEGC[x]||"#ccc",flexShrink:0}}/>{x}</span>}}/>;
+                    if(col.k==="segPriority")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={["Priority","Non-priority"]} render={function(x){return<span style={{display:"inline-block",padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700,background:x==="Priority"?"#dcfce7":"#f3f4f6",color:x==="Priority"?"#166534":"#9ca3af"}}>{x}</span>}}/>;
+                    if(col.k==="mapped")return<span style={{display:"inline-block",padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700,background:v?"#dbeafe":"#fee2e2",color:v?"#1e40af":"#991b1b"}}>{v?"Yes":"No"}</span>;
+                    if(col.k==="priority")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={["P1 - High priority","P2 - Opportunistic"]} render={function(x){var p1=x.includes("P1");return<span style={{display:"inline-block",padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700,background:p1?P:"#f3f4f6",color:p1?"#fff":"#6b7280"}}>{p1?"P1 — High":"P2 — Opp."}</span>}}/>;
                     if(col.k==="region")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={REGIONS}/>;
                     if(col.k==="ownership")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={["Public","Private"]} render={function(x){return<span style={{display:"inline-block",padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700,background:x==="Public"?"#dbeafe":"#f3e8ff",color:x==="Public"?"#1e40af":"#7c3aed"}}>{x}</span>}}/>;
                     if(col.k==="outsourcingPropensity")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={[4.75,5]} render={function(x){return<span style={{display:"inline-block",padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700,background:Number(x)>=5?"#dcfce7":"#fef3c7",color:Number(x)>=5?"#166534":"#92400e"}}>{x}</span>}}/>;
@@ -250,7 +310,6 @@ export default function App(){
                     if(col.k==="profitPct")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} type="number" render={function(x){var pv=Number(x);return<span style={{fontWeight:600,fontVariantNumeric:"tabular-nums",color:pv>=30?"#166534":pv>=15?P:"#6b7280"}}>{pv.toFixed(1)}%</span>}}/>;
                     if(col.k==="potentialSpendMEur")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} type="number" render={function(x){return<span style={{fontWeight:700,color:P,fontVariantNumeric:"tabular-nums"}}>{Number(x).toFixed(2)}</span>}}/>;
                     if(typeof v==="number")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} type="number" render={function(x){return<span style={{fontVariantNumeric:"tabular-nums",color:"#374151"}}>{typeof x==="number"&&x>1000000?(Number(x)/1000000000).toFixed(2)+"B":Number(x).toLocaleString(undefined,{maximumFractionDigits:2})}</span>}}/>;
-                    if(col.k==="segPrio"||col.k==="subSegPrio")return<span style={{fontSize:10,color:"#6b7280"}}>{v}</span>;
                     return<EditCell value={v||""} onSave={function(x){updateCo(c.id,col.k,x)}}/>;
                   }
                   return<tr key={c.id} style={{background:bg,transition:"background .1s",borderLeft:leftBorder}} onMouseEnter={function(){setHovRow(c.id)}} onMouseLeave={function(){setHovRow(null)}}>
