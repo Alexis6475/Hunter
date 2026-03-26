@@ -146,16 +146,30 @@ function ScoreSlider({value,onChange,color}) {
 
 function QualificationGauge({score}) {
   const qual=getQualification(score);
-  const pct=score/5;
+  const pct=Math.min(score/5,1);
   const angle=-90+pct*180;
+  // Arc helper: angle in degrees from -90 (left) to 90 (right), radius 80, center (100,100)
+  const arcPt=(deg)=>{const r=Math.PI/180;return{x:100+80*Math.cos(deg*r),y:100+80*Math.sin(deg*r)}};
+  // Thresholds: NR < 2.5/5 = 50%, MQL < 3.8/5 = 76%, SQL >= 76%
+  // Angles: -90 to 90. NR: -90 to 0, MQL: 0 to 46.8, SQL: 46.8 to 90
+  const nrEnd=arcPt(-90+180*0.5); // 2.5/5 = 0°
+  const mqlEnd=arcPt(-90+180*0.76); // 3.8/5 = 46.8°
+  const needleTip={x:100+60*Math.cos(angle*Math.PI/180),y:100+60*Math.sin(angle*Math.PI/180)};
   return <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
     <svg viewBox="0 0 200 120" style={{width:200,height:120}}>
-      <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f1f5f9" strokeWidth="16" strokeLinecap="round"/>
-      <path d="M 126 27 A 80 80 0 0 1 180 100" fill="none" stroke="#dcfce7" strokeWidth="16" strokeLinecap="round"/>
-      <path d="M 63 27 A 80 80 0 0 1 126 27" fill="none" stroke="#fef3c7" strokeWidth="16" strokeLinecap="round"/>
-      <path d="M 20 100 A 80 80 0 0 1 63 27" fill="none" stroke="#fee2e2" strokeWidth="16" strokeLinecap="round"/>
-      <line x1="100" y1="100" x2={100+60*Math.cos(angle*Math.PI/180)} y2={100+60*Math.sin(angle*Math.PI/180)} stroke="#1e293b" strokeWidth="3" strokeLinecap="round" style={{transition:"all 0.6s cubic-bezier(0.34,1.56,0.64,1)"}}/>
+      {/* Red zone: 0 - 2.5 (left half) */}
+      <path d={`M 20 100 A 80 80 0 0 1 ${nrEnd.x} ${nrEnd.y}`} fill="none" stroke="#fca5a5" strokeWidth="16" strokeLinecap="round"/>
+      {/* Yellow zone: 2.5 - 3.8 */}
+      <path d={`M ${nrEnd.x} ${nrEnd.y} A 80 80 0 0 1 ${mqlEnd.x} ${mqlEnd.y}`} fill="none" stroke="#fcd34d" strokeWidth="16" strokeLinecap="round"/>
+      {/* Green zone: 3.8 - 5 (right portion) */}
+      <path d={`M ${mqlEnd.x} ${mqlEnd.y} A 80 80 0 0 1 180 100`} fill="none" stroke="#86efac" strokeWidth="16" strokeLinecap="round"/>
+      {/* Needle */}
+      <line x1="100" y1="100" x2={needleTip.x} y2={needleTip.y} stroke="#1e293b" strokeWidth="3" strokeLinecap="round" style={{transition:"all 0.6s cubic-bezier(0.34,1.56,0.64,1)"}}/>
       <circle cx="100" cy="100" r="6" fill="#1e293b"/>
+      {/* Labels */}
+      <text x="20" y="118" fontSize="9" fill="#ef4444" fontWeight="700">NR</text>
+      <text x="90" y="16" fontSize="9" fill="#f59e0b" fontWeight="700">MQL</text>
+      <text x="168" y="118" fontSize="9" fill="#16a34a" fontWeight="700">SQL</text>
     </svg>
     <div style={{padding:"6px 16px",borderRadius:"8px",background:qual.bg,border:`2px solid ${qual.border}`,color:qual.color,fontWeight:800,fontSize:"14px"}}>{qual.label}</div>
   </div>;
@@ -163,8 +177,11 @@ function QualificationGauge({score}) {
 
 function PrequalificationView({companies,fontStack}) {
   const [selId,setSelId]=useState(null);
-  const [scores,setScores]=useState({});
-  const [notes,setNotes]=useState({});
+  const [allData,setAllData]=useState(()=>{try{return JSON.parse(localStorage.getItem("atalian_prequal")||"{}")}catch{return{}}});
+  const scores=selId&&allData[selId]?allData[selId].scores||{}:{};
+  const notes=selId&&allData[selId]?allData[selId].notes||{}:{};
+  const setScores=(fn)=>{setAllData(prev=>{const cur=prev[selId]||{scores:{},notes:{}};const newScores=typeof fn==="function"?fn(cur.scores):fn;const next={...prev,[selId]:{...cur,scores:newScores}};localStorage.setItem("atalian_prequal",JSON.stringify(next));return next})};
+  const setNotes=(fn)=>{setAllData(prev=>{const cur=prev[selId]||{scores:{},notes:{}};const newNotes=typeof fn==="function"?fn(cur.notes):fn;const next={...prev,[selId]:{...cur,notes:newNotes}};localStorage.setItem("atalian_prequal",JSON.stringify(next));return next})};
   const [csearch,setCsearch]=useState("");
   const [showQ,setShowQ]=useState({});
   const sel=companies.find(c=>c.id===selId);
@@ -173,17 +190,21 @@ function PrequalificationView({companies,fontStack}) {
   const allScored=PREQUALIFICATION_CRITERIA.every(cat=>cat.criteria.every(c=>scores[c.id]));
   const scoredCount=Object.keys(scores).filter(k=>scores[k]).length;
   const totalCriteria=PREQUALIFICATION_CRITERIA.reduce((s,cat)=>s+cat.criteria.length,0);
-  const reset=()=>{setScores({});setNotes({});setShowQ({})};
+  // Count how many companies have been scored
+  const scoredCompanies=Object.keys(allData).filter(k=>{const d=allData[k];return d.scores&&Object.keys(d.scores).length>0}).length;
 
   return <div style={{display:"grid",gridTemplateColumns:"320px 1fr",gap:24,alignItems:"start"}}>
     <div style={{background:"#fff",borderRadius:"14px",padding:"20px",boxShadow:"0 1px 4px rgba(0,0,0,0.05)",position:"sticky",top:24}}>
-      <h3 style={{margin:"0 0 12px",fontSize:"14px",fontWeight:700,color:"#1e293b"}}>Select Account</h3>
+      <h3 style={{margin:"0 0 4px",fontSize:"14px",fontWeight:700,color:"#1e293b"}}>Select Account</h3>
+      <p style={{margin:0,fontSize:"11px",color:"#94a3b8",marginBottom:12}}>{scoredCompanies} account{scoredCompanies!==1?"s":""} scored · Auto-saved</p>
       <input type="text" placeholder="Search company…" value={csearch} onChange={e=>setCsearch(e.target.value)} style={{width:"100%",padding:"8px 12px",borderRadius:"8px",border:"1px solid #e2e8f0",fontSize:"13px",fontFamily:fontStack,outline:"none",marginBottom:12,boxSizing:"border-box"}}/>
       <div style={{maxHeight:420,overflowY:"auto",display:"flex",flexDirection:"column",gap:4}}>
-        {fc.map(c=><button key={c.id} onClick={()=>{setSelId(c.id);reset()}} style={{display:"flex",flexDirection:"column",alignItems:"flex-start",padding:"10px 12px",borderRadius:"8px",border:selId===c.id?"2px solid #be123c":"1px solid #f1f5f9",background:selId===c.id?"#fef2f2":"#fff",cursor:"pointer",textAlign:"left",fontFamily:fontStack,transition:"all 0.15s",width:"100%",boxSizing:"border-box"}}>
+        {fc.map(c=>{const hasSaved=allData[c.id]&&allData[c.id].scores&&Object.keys(allData[c.id].scores).length>0;const savedWs=(()=>{if(!hasSaved)return 0;const sc=allData[c.id].scores;let tw=0,tu=0;PREQUALIFICATION_CRITERIA.forEach(cat=>cat.criteria.forEach(cr=>{if(sc[cr.id]){tw+=sc[cr.id]*cr.weight;tu+=cr.weight}}));return tu===0?0:tw/tu})();const savedQual=hasSaved?getQualification(savedWs):null;
+        return <button key={c.id} onClick={()=>{setSelId(c.id);setShowQ({})}} style={{display:"flex",flexDirection:"column",alignItems:"flex-start",padding:"10px 12px",borderRadius:"8px",border:selId===c.id?"2px solid #be123c":"1px solid #f1f5f9",background:selId===c.id?"#fef2f2":"#fff",cursor:"pointer",textAlign:"left",fontFamily:fontStack,transition:"all 0.15s",width:"100%",boxSizing:"border-box",position:"relative"}}>
           <span style={{fontSize:"13px",fontWeight:600,color:"#0f172a"}}>{c.name}</span>
           <span style={{fontSize:"11px",color:"#94a3b8",marginTop:2}}>{c.segment} · {c.region} · {c.revenue}m€</span>
-        </button>)}
+          {hasSaved&&<span style={{position:"absolute",top:8,right:8,fontSize:"10px",fontWeight:700,padding:"1px 6px",borderRadius:"4px",background:savedQual.bg,color:savedQual.color,border:`1px solid ${savedQual.border}`}}>{savedQual.abbr}</span>}
+        </button>})}
       </div>
     </div>
     <div>
@@ -235,6 +256,7 @@ function PrequalificationView({companies,fontStack}) {
                 </div>})}
               </div>
               {allScored&&<div style={{marginTop:16,padding:"10px",borderRadius:"8px",background:"#f0fdf4",border:"1px solid #86efac",fontSize:"12px",color:"#166534",fontWeight:600}}>✓ All criteria scored — qualification complete</div>}
+              {scoredCount>0&&<div style={{marginTop:8,fontSize:"11px",color:"#94a3b8",textAlign:"center"}}>💾 Auto-saved in browser</div>}
             </div>
           </div>
         </div>
