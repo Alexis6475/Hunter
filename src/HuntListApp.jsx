@@ -23,7 +23,9 @@ function genCo(n){
     var nm;do{nm=p(pfx)+p(["a","o","ex","is","um","en","ia"])+" "+p(sfx)}while(u.has(nm));u.add(nm);
     var rnd=Math.random()*stot,cum=0,seg=skeys[0];
     for(var si=0;si<skeys.length;si++){cum+=SEG_W[skeys[si]];if(rnd<=cum){seg=skeys[si];break}}
-    co.push({id:i+1,nip:r(1000000000,9999999999)+"",name:nm,segment:seg,subSegment:p(SUB_SEG[seg]),ownership:Math.random()<.2?"Public":"Private",revenueBnEur:rf(.06,48),profitPct:rf(5,70),outsourcingPropensity:Math.random()<.6?4.75:5,potentialSpendMEur:rf(.03,10),cluster:Math.random()<.96?"New Prospect":"Current Client",score:rf(1.5,5),region:p(REGIONS),contactName:""});
+    var revPLN=rf(500000000,82000000000);var profitPLN=revPLN*rf(0.05,0.7);var revBnEur=+(revPLN/4166000000).toFixed(2);var profitBnEur=+(profitPLN/4166000000).toFixed(2);var profitPct=+(profitPLN/revPLN*100).toFixed(1);var potSpend=+(revBnEur*rf(0.3,0.6)).toFixed(2);
+    var nRevBnEur=rf(1,20),nProfitPct=rf(1,11),nOutsrc=rf(3,5),nPotSpend=rf(1,22),nRevBnEur2=rf(1,10),nProfitPct2=rf(1,11),nOutsrc2=rf(3,5),nPotSpend2=rf(1,10);
+    co.push({id:i+1,nip:r(1000000000,9999999999)+"",name:nm,segment:seg,subSegment:p(SUB_SEG[seg]),segPrio:"Priority segment",subSegPrio:"P1 - High priority market",ownership:Math.random()<.2?"Public":"Private",revenuePLN:Math.round(revPLN),profitPLN:Math.round(profitPLN),profitBnEur:profitBnEur,revenueBnEur:revBnEur,profitPct:profitPct,outsourcingPropensity:Math.random()<.6?4.75:5,potentialSpendMEur:potSpend,cluster:Math.random()<.96?"New Prospect":"Current Client",nRevBnEur:+nRevBnEur.toFixed(2),nProfitPct:+nProfitPct.toFixed(2),nOutsrc:+nOutsrc.toFixed(2),nPotSpend:+nPotSpend.toFixed(2),nRevBnEur2:+nRevBnEur2.toFixed(2),nProfitPct2:+nProfitPct2.toFixed(2),nOutsrc2:+nOutsrc2.toFixed(2),nPotSpend2:+nPotSpend2.toFixed(2),score:rf(1.5,5),region:p(REGIONS),contactName:""});
   }return co}
 
 var PQ=[{cat:"STRATEGIC FIT",color:"#e11d48",items:[{id:"intent",name:"Intent to outsource FM",desc:"Considering outsourcing FM?",q:["Considering outsourcing?","New need?","What's driving this?"],w:3},{id:"scope",name:"Service scope",desc:"Which FM services?",q:["Which services?","One or multiple providers?","Scope expand?"],w:2}]},{cat:"OPERATIONAL FIT",color:"#2563eb",items:[{id:"ability",name:"AP ability to respond",desc:"Fits AP capabilities?",q:["Key requirements?","Constraints?","Service levels?"],w:3},{id:"geography",name:"Geography / footprint",desc:"Where needed?",q:["Site locations?","How many?","Single/multi?"],w:2}]},{cat:"LEAD QUALITY",color:"#f59e0b",items:[{id:"competitor",name:"Competitor / wallet share",desc:"Another provider?",q:["Current provider?","Satisfaction?","Replace?"],w:2},{id:"interest",name:"Interest shown",desc:"Client engaged?",q:["Open to follow-up?","Important today?"],w:2},{id:"need",name:"Need / pain points",desc:"Clear business need?",q:["FM challenges?","Improve what?","Ideal solution?"],w:1}]}];
@@ -110,17 +112,31 @@ function EditCell(props){var value=props.value,onSave=props.onSave,type=props.ty
 }
 
 var COLS=[
-  {k:"name",l:"Company",w:190},
+  {k:"nip",l:"NIP Code",w:110},
+  {k:"name",l:"Company",w:200},
   {k:"segment",l:"Segment",w:160},
-  {k:"subSegment",l:"Sub-segment",w:150},
-  {k:"region",l:"Region",w:105},
-  {k:"ownership",l:"Pub/Priv",w:70},
-  {k:"revenueBnEur",l:"Rev (bn€)",w:85},
+  {k:"subSegment",l:"Sub-segment",w:180},
+  {k:"segPrio",l:"Seg. Prioritization",w:130},
+  {k:"subSegPrio",l:"Sub-seg Prioritization",w:150},
+  {k:"ownership",l:"Pub/Priv",w:75},
+  {k:"revenuePLN",l:"Revenue (PLN)",w:120},
+  {k:"profitPLN",l:"Profit (PLN)",w:120},
+  {k:"profitBnEur",l:"Profit (bn€)",w:90},
+  {k:"revenueBnEur",l:"Revenue (bn€)",w:95},
   {k:"profitPct",l:"Profit %",w:70},
-  {k:"outsourcingPropensity",l:"Outsrc.",w:65},
-  {k:"potentialSpendMEur",l:"Pot. Spend (m€)",w:100},
-  {k:"cluster",l:"Cluster",w:110},
-  {k:"score",l:"Score",w:60},
+  {k:"outsourcingPropensity",l:"Outsrc. Propensity",w:110},
+  {k:"potentialSpendMEur",l:"Pot. Spend (m€)",w:110},
+  {k:"cluster",l:"Cluster",w:115},
+  {k:"nRevBnEur",l:"N.Rev (bn€)",w:90},
+  {k:"nProfitPct",l:"N.Profit %",w:80},
+  {k:"nOutsrc",l:"N.Outsrc",w:75},
+  {k:"nPotSpend",l:"N.Pot.Spend",w:85},
+  {k:"nRevBnEur2",l:"N.Rev2 (bn€)",w:90},
+  {k:"nProfitPct2",l:"N.Profit2 %",w:85},
+  {k:"nOutsrc2",l:"N.Outsrc2",w:80},
+  {k:"nPotSpend2",l:"N.Pot.Spend2",w:90},
+  {k:"score",l:"Score",w:65},
+  {k:"contactName",l:"Key Contact",w:130},
 ];
 
 export default function App(){
@@ -188,31 +204,37 @@ export default function App(){
           <select value={cluF} onChange={function(e){setCluF(e.target.value);setPage(0)}} style={Object.assign({},inp,{width:"auto",background:"#fff",cursor:"pointer"})}><option value="All">Cluster</option>{CLUSTERS.map(function(o){return<option key={o} value={o}>{o}</option>})}</select>
           <span style={{fontSize:10,color:"#9ca3af",marginLeft:"auto",fontWeight:600}}>{filtered.length} results · double-click to edit</span>
         </div>
-        <div style={Object.assign({},cd,{overflow:"hidden"})}><div style={{overflowX:"auto"}}>
-          <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-            <thead><tr>{COLS.map(function(c){return<th key={c.k} onClick={function(){hs(c.k)}} style={{padding:"9px 12px",textAlign:"left",fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:".08em",color:sortK===c.k?P:"#9ca3af",borderBottom:"2px solid #f0f0f5",cursor:"pointer",userSelect:"none",whiteSpace:"nowrap",minWidth:c.w,background:"#fafafa"}}>{c.l}{sortK===c.k?(sortD==="asc"?" ↑":" ↓"):""}</th>})}</tr></thead>
-            <tbody>{pg.map(function(c,i){var q=store.qual(c.id);var hf=store.hasFile(c.id);var isH=hovRow===c.id;
-              return<tr key={c.id} style={{background:isH?"#eef2ff":i%2===0?"#fff":"#fafafa",transition:"background .1s",position:"relative"}} onMouseEnter={function(){setHovRow(c.id)}} onMouseLeave={function(){setHovRow(null)}}>
-                {COLS.map(function(col){return<td key={col.k} style={{padding:"8px 12px",borderBottom:"1px solid #f0f0f5",whiteSpace:"nowrap",color:"#374151"}}>
-                  {col.k==="name"?<div style={{display:"flex",alignItems:"center"}}><EditCell value={c.name} onSave={function(v){updateCo(c.id,"name",v)}} render={function(v){return<span style={{fontWeight:700,color:Dk}}>{v}</span>}}/>{q&&<QBadge q={q}/>}{hf&&<span style={{marginLeft:3,fontSize:9,color:P}}>📋</span>}</div>:
-                  col.k==="segment"?<EditCell value={c.segment} onSave={function(v){updateCo(c.id,"segment",v)}} options={SEGMENTS}/>:
-                  col.k==="subSegment"?<EditCell value={c.subSegment} onSave={function(v){updateCo(c.id,"subSegment",v)}}/>:
-                  col.k==="region"?<EditCell value={c.region} onSave={function(v){updateCo(c.id,"region",v)}} options={REGIONS}/>:
-                  col.k==="ownership"?<EditCell value={c.ownership} onSave={function(v){updateCo(c.id,"ownership",v)}} options={["Public","Private"]}/>:
-                  col.k==="cluster"?<EditCell value={c.cluster} onSave={function(v){updateCo(c.id,"cluster",v)}} options={CLUSTERS} render={function(v){return<ClBadge s={v}/>}}/>:
-                  col.k==="revenueBnEur"?<EditCell value={c.revenueBnEur} onSave={function(v){updateCo(c.id,"revenueBnEur",v)}} type="number" render={function(v){return<span style={{fontWeight:700,fontVariantNumeric:"tabular-nums"}}>{Number(v).toFixed(2)}</span>}}/>:
-                  col.k==="profitPct"?<EditCell value={c.profitPct} onSave={function(v){updateCo(c.id,"profitPct",v)}} type="number" render={function(v){return<span style={{fontVariantNumeric:"tabular-nums"}}>{Number(v).toFixed(1)}%</span>}}/>:
-                  col.k==="outsourcingPropensity"?<EditCell value={c.outsourcingPropensity} onSave={function(v){updateCo(c.id,"outsourcingPropensity",v)}} options={[4.75,5]} render={function(v){return<ODot v={v}/>}}/>:
-                  col.k==="potentialSpendMEur"?<EditCell value={c.potentialSpendMEur} onSave={function(v){updateCo(c.id,"potentialSpendMEur",v)}} type="number" render={function(v){return<span style={{fontVariantNumeric:"tabular-nums"}}>{Number(v).toFixed(2)}</span>}}/>:
-                  col.k==="score"?<EditCell value={c.score} onSave={function(v){updateCo(c.id,"score",v)}} type="number" render={function(v){return<span style={{fontWeight:700,color:Number(v)>=4?"#16a34a":Number(v)>=3?P:"#ef4444"}}>{Number(v).toFixed(2)}</span>}}/>:
-                  c[col.k]}
-                </td>})}
-                {isH&&<td style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",display:"flex",gap:4,zIndex:5}}>
-                  <button onClick={function(){setPanel({type:"prequal",co:c})}} style={{padding:"5px 12px",borderRadius:8,border:"none",background:P,color:"#fff",fontSize:10,fontWeight:800,cursor:"pointer",fontFamily:F,boxShadow:"0 2px 10px "+P+"44"}}>🎯 Pre-qual</button>
-                  <button onClick={function(){setPanel({type:"prospect",co:c})}} style={{padding:"5px 12px",borderRadius:8,border:"none",background:Dk,color:"#fff",fontSize:10,fontWeight:800,cursor:"pointer",fontFamily:F,boxShadow:"0 2px 10px "+Dk+"44"}}>📋 Prospect</button>
-                </td>}
-              </tr>})}</tbody>
-          </table></div></div>
+        <div style={{position:"relative"}}>
+          <div style={Object.assign({},cd,{overflow:"hidden"})}>
+            <div style={{overflowX:"auto",overflowY:"visible"}}>
+              <table style={{width:"max-content",minWidth:"100%",borderCollapse:"collapse",fontSize:12}}>
+                <thead><tr>{COLS.map(function(c){return<th key={c.k} onClick={function(){hs(c.k)}} style={{padding:"9px 12px",textAlign:"left",fontSize:9,fontWeight:800,textTransform:"uppercase",letterSpacing:".08em",color:sortK===c.k?P:"#9ca3af",borderBottom:"2px solid #f0f0f5",cursor:"pointer",userSelect:"none",whiteSpace:"nowrap",minWidth:c.w,background:"#fafafa",position:"sticky",top:0,zIndex:2}}>{c.l}{sortK===c.k?(sortD==="asc"?" ↑":" ↓"):""}</th>})}<th style={{position:"sticky",right:0,background:"#fafafa",borderBottom:"2px solid #f0f0f5",minWidth:180,zIndex:3}}></th></tr></thead>
+                <tbody>{pg.map(function(c,i){var q=store.qual(c.id);var hf=store.hasFile(c.id);var isH=hovRow===c.id;var bg=isH?"#eef2ff":i%2===0?"#fff":"#fafafa";
+                  function renderCell(col){
+                    var v=c[col.k];
+                    if(col.k==="name")return<div style={{display:"flex",alignItems:"center"}}><EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} render={function(x){return<span style={{fontWeight:700,color:Dk}}>{x}</span>}}/>{q&&<QBadge q={q}/>}{hf&&<span style={{marginLeft:3,fontSize:9,color:P}}>📋</span>}</div>;
+                    if(col.k==="cluster")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={CLUSTERS} render={function(x){return<ClBadge s={x}/>}}/>;
+                    if(col.k==="segment")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={SEGMENTS}/>;
+                    if(col.k==="region")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={REGIONS}/>;
+                    if(col.k==="ownership")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={["Public","Private"]}/>;
+                    if(col.k==="outsourcingPropensity")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} options={[4.75,5]} render={function(x){return<ODot v={x}/>}}/>;
+                    if(col.k==="score")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} type="number" render={function(x){return<span style={{fontWeight:700,color:Number(x)>=4?"#16a34a":Number(x)>=3?P:"#ef4444"}}>{Number(x).toFixed(2)}</span>}}/>;
+                    if(typeof v==="number")return<EditCell value={v} onSave={function(x){updateCo(c.id,col.k,x)}} type="number" render={function(x){return<span style={{fontVariantNumeric:"tabular-nums"}}>{typeof x==="number"&&x>1000000?Number(x).toExponential(2):Number(x).toLocaleString(undefined,{maximumFractionDigits:2})}</span>}}/>;
+                    return<EditCell value={v||""} onSave={function(x){updateCo(c.id,col.k,x)}}/>;
+                  }
+                  return<tr key={c.id} style={{background:bg,transition:"background .1s"}} onMouseEnter={function(){setHovRow(c.id)}} onMouseLeave={function(){setHovRow(null)}}>
+                    {COLS.map(function(col){return<td key={col.k} style={{padding:"8px 12px",borderBottom:"1px solid #f0f0f5",whiteSpace:"nowrap",color:"#374151"}}>{renderCell(col)}</td>})}
+                    <td style={{position:"sticky",right:0,background:bg,borderBottom:"1px solid #f0f0f5",padding:"8px 10px",zIndex:3,boxShadow:"-4px 0 8px rgba(0,0,0,.04)"}}>
+                      <div style={{display:"flex",gap:4,opacity:isH?1:0,transition:"opacity .15s"}}>
+                        <button onClick={function(){setPanel({type:"prequal",co:c})}} style={{padding:"5px 12px",borderRadius:8,border:"none",background:P,color:"#fff",fontSize:10,fontWeight:800,cursor:"pointer",fontFamily:F}}>🎯 Pre-qual</button>
+                        <button onClick={function(){setPanel({type:"prospect",co:c})}} style={{padding:"5px 12px",borderRadius:8,border:"none",background:Dk,color:"#fff",fontSize:10,fontWeight:800,cursor:"pointer",fontFamily:F}}>📋 Prospect</button>
+                      </div>
+                    </td>
+                  </tr>})}</tbody>
+              </table>
+            </div>
+          </div>
+        </div>
         <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:6,marginTop:12}}>
           <button disabled={page===0} onClick={function(){setPage(page-1)}} style={{padding:"5px 14px",borderRadius:8,border:"1px solid #e5e7eb",background:page===0?"#f3f4f6":"#fff",cursor:page===0?"default":"pointer",fontSize:11,fontFamily:F,color:page===0?"#d1d5db":Dk,fontWeight:700}}>←</button>
           <span style={{fontSize:11,color:"#6b7280",fontWeight:700}}>{page+1}/{tp}</span>
