@@ -26,6 +26,39 @@ function useStore(){var[data,setData]=useState(function(){try{return JSON.parse(
 var cd={background:"#fff",borderRadius:16,boxShadow:"0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.03)",border:"1px solid #f0f0f5"};
 var inp={padding:"8px 11px",borderRadius:10,border:"1px solid #e5e7eb",fontSize:13,fontFamily:F,outline:"none",color:Dk,boxSizing:"border-box",background:"#fafafa",width:"100%"};
 
+/* ── Sparkline (mini trend chart for KPI cards) ── */
+function Sparkline(props){var color=props.color||P;var pts=useMemo(function(){var arr=[];for(var i=0;i<12;i++)arr.push(Math.random()*.6+.2+(i/12)*.3);return arr},[]);var h=24,w=72;var max=Math.max.apply(null,pts),min=Math.min.apply(null,pts);var d="M"+pts.map(function(v,i){return(i/(pts.length-1)*w).toFixed(1)+","+(h-(v-min)/(max-min||1)*h).toFixed(1)}).join(" L");var areaD=d+" L"+w+","+h+" L0,"+h+" Z";return<svg width={w} height={h} style={{display:"block",marginTop:4}}><path d={areaD} fill={color} opacity=".1"/><path d={d} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round"/><circle cx={w} cy={h-(pts[pts.length-1]-min)/(max-min||1)*h} r="2" fill={color}/></svg>}
+
+/* ── New Prospect Modal ── */
+function NewProspectModal(props){
+  var[name,setName]=useState("");var[nip,setNip]=useState("");var[seg,setSeg]=useState(SEGMENTS[0]);var[reg,setReg]=useState(REGIONS[0]);var[rev,setRev]=useState("");var[own,setOwn]=useState("Private");var[cluster,setCluster]=useState("New Prospect");
+  var canSave=name.trim().length>0;
+  return<div style={{position:"fixed",inset:0,zIndex:10000,background:"rgba(0,0,0,.4)",display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}} onClick={function(e){if(e.target===e.currentTarget)props.onClose()}}>
+    <div style={{background:"#fff",borderRadius:20,padding:"28px 32px",maxWidth:480,width:"92%",boxShadow:"0 20px 60px rgba(0,0,0,.2)",animation:"fadeUp .25s ease-out"}}>
+      <h2 style={{margin:"0 0 4px",fontSize:18,fontWeight:900,color:Dk}}>+ New Prospect</h2>
+      <p style={{margin:"0 0 16px",fontSize:12,color:"#9ca3af"}}>Add a company to your hunt list</p>
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        <div><label style={{fontSize:10,fontWeight:700,color:"#6b7280",display:"block",marginBottom:2}}>Company Name *</label><input value={name} onChange={function(e){setName(e.target.value)}} placeholder="e.g. Warszawa Logistics S.A." style={inp}/></div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><label style={{fontSize:10,fontWeight:700,color:"#6b7280",display:"block",marginBottom:2}}>NIP Code</label><input value={nip} onChange={function(e){setNip(e.target.value)}} placeholder="10 digits" style={inp}/></div>
+          <div><label style={{fontSize:10,fontWeight:700,color:"#6b7280",display:"block",marginBottom:2}}>Revenue (bn€)</label><input value={rev} onChange={function(e){setRev(e.target.value)}} placeholder="e.g. 1.5" type="number" style={inp}/></div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><label style={{fontSize:10,fontWeight:700,color:"#6b7280",display:"block",marginBottom:2}}>Segment</label><select value={seg} onChange={function(e){setSeg(e.target.value)}} style={Object.assign({},inp,{cursor:"pointer"})}>{SEGMENTS.map(function(s){return<option key={s} value={s}>{s}</option>})}</select></div>
+          <div><label style={{fontSize:10,fontWeight:700,color:"#6b7280",display:"block",marginBottom:2}}>Region</label><select value={reg} onChange={function(e){setReg(e.target.value)}} style={Object.assign({},inp,{cursor:"pointer"})}>{REGIONS.map(function(r){return<option key={r} value={r}>{r}</option>})}</select></div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><label style={{fontSize:10,fontWeight:700,color:"#6b7280",display:"block",marginBottom:2}}>Ownership</label><select value={own} onChange={function(e){setOwn(e.target.value)}} style={Object.assign({},inp,{cursor:"pointer"})}><option value="Private">Private</option><option value="Public">Public</option></select></div>
+          <div><label style={{fontSize:10,fontWeight:700,color:"#6b7280",display:"block",marginBottom:2}}>Cluster</label><select value={cluster} onChange={function(e){setCluster(e.target.value)}} style={Object.assign({},inp,{cursor:"pointer"})}><option value="New Prospect">New Prospect</option><option value="Current Client">Current Client</option></select></div>
+        </div>
+      </div>
+      <div style={{display:"flex",gap:8,marginTop:18,justifyContent:"flex-end"}}>
+        <button onClick={props.onClose} style={{padding:"8px 20px",borderRadius:10,border:"1px solid #e5e7eb",background:"#fff",color:"#6b7280",fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:F}}>Cancel</button>
+        <button disabled={!canSave} onClick={function(){var revNum=parseFloat(rev)||1;props.onAdd({name:name.trim(),nip:nip||Math.floor(Math.random()*9000000000+1000000000)+"",segment:seg,subSegment:SUB_SEG[seg][0],region:reg,ownership:own,cluster:cluster,revenueBnEur:revNum,profitPct:+(Math.random()*40+5).toFixed(1),potentialSpendMEur:+(revNum*(.3+Math.random()*.3)).toFixed(2),score:+(Math.random()*3.5+1.5).toFixed(2)});props.onClose()}} style={{padding:"8px 24px",borderRadius:10,border:"none",background:canSave?P:"#e5e7eb",color:canSave?"#fff":"#9ca3af",fontWeight:700,fontSize:12,cursor:canSave?"pointer":"default",fontFamily:F}}>Add Prospect</button>
+      </div>
+    </div>
+  </div>}
+
 /* ── Toast System ── */
 function useToast(){var[toasts,setToasts]=useState([]);var add=function(msg,type){var id=Date.now();setToasts(function(p){return p.concat([{id:id,msg:msg,type:type||"info"}])});setTimeout(function(){setToasts(function(p){return p.filter(function(t){return t.id!==id})})},2500)};return{toasts:toasts,add:add}}
 function Toasts(props){return<div style={{position:"fixed",top:16,right:16,zIndex:9999,display:"flex",flexDirection:"column",gap:6}}>{props.toasts.map(function(t){var bg=t.type==="success"?"#16a34a":t.type==="warning"?"#f59e0b":P;return<div key={t.id} style={{padding:"10px 18px",borderRadius:12,background:bg,color:"#fff",fontSize:12,fontWeight:700,fontFamily:F,boxShadow:"0 4px 16px rgba(0,0,0,.15)",animation:"fadeUp .3s ease-out",maxWidth:300}}>{t.msg}</div>})}</div>}
@@ -96,9 +129,11 @@ export default function App(){
   var store=useStore();var PS=30;var toast=useToast();
   var[showTour,setShowTour]=useState(function(){try{return!localStorage.getItem("at_toured")}catch(e){return true}});
   var[dragId,setDragId]=useState(null);
+  var[showNewModal,setShowNewModal]=useState(false);
 
   var updateCo=useCallback(function(id,key,val){setCo(function(prev){return prev.map(function(c){if(c.id===id){var n=Object.assign({},c);n[key]=val;return n}return c})})},[]);
   var updateStage=useCallback(function(id,stage){setCo(function(prev){return prev.map(function(c){return c.id===id?Object.assign({},c,{stage:stage}):c})})},[]);
+  var addCompany=useCallback(function(data){setCo(function(prev){var maxId=prev.reduce(function(m,c){return Math.max(m,c.id)},0);return prev.concat([{id:maxId+1,nip:data.nip,name:data.name,segment:data.segment,subSegment:data.subSegment||SUB_SEG[data.segment][0],segPriority:"Priority",mapped:true,priority:"P1 - High priority",ownership:data.ownership||"Private",revenuePLN:Math.round((data.revenueBnEur||1)*4166000000),profitPLN:0,revenueBnEur:data.revenueBnEur||1,profitPct:data.profitPct||0,outsourcingPropensity:5,potentialSpendMEur:data.potentialSpendMEur||0.5,cluster:data.cluster||"New Prospect",score:data.score||3,region:data.region||REGIONS[0],contactName:"",stage:"New"}])})},[]);
 
   var qualMap=useMemo(function(){var m={};companies.forEach(function(c){m[c.id]=store.qual(c.id)});return m},[companies,store]);
   var filtered=useMemo(function(){var d=companies.slice();if(search){var q=search.toLowerCase();d=d.filter(function(c){return c.name.toLowerCase().includes(q)||c.nip.includes(q)})}if(segF!=="All")d=d.filter(function(c){return c.segment===segF});if(regF!=="All")d=d.filter(function(c){return c.region===regF});if(ownF!=="All")d=d.filter(function(c){return c.ownership===ownF});if(stageF!=="All")d=d.filter(function(c){return c.stage===stageF});d.sort(function(a,b){var av=a[sortK],bv=b[sortK];if(typeof av==="string"){av=av.toLowerCase();bv=bv.toLowerCase()}return sortD==="asc"?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0)});return d},[companies,search,segF,regF,ownF,stageF,sortK,sortD]);
@@ -124,9 +159,10 @@ export default function App(){
 
   return<div style={{fontFamily:F,background:"#f3f4f6",minHeight:"100vh",color:Dk}}>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap" rel="stylesheet"/>
-    <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}.fade-up{animation:fadeUp .35s cubic-bezier(.4,0,.2,1) both}.hover-lift{transition:transform .2s,box-shadow .2s}.hover-lift:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08)}.btn-pop{transition:all .15s}.btn-pop:hover{transform:scale(1.03)}.row-hover{transition:background .12s}.row-hover:hover{background:#eef2ff !important}.pipe-dot{animation:pulse 2s infinite}.drag-over{background:#E8772220 !important;border:2px dashed #E87722 !important}`}</style>
+    <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}.fade-up{animation:fadeUp .35s cubic-bezier(.4,0,.2,1) both}.fade-in{animation:fadeIn .25s ease-out both}.hover-lift{transition:transform .2s,box-shadow .2s}.hover-lift:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08)}.btn-pop{transition:all .15s}.btn-pop:hover{transform:scale(1.03)}.row-hover{transition:background .12s}.row-hover:hover{background:#eef2ff !important}.pipe-dot{animation:pulse 2s infinite}.drag-over{background:#E8772220 !important;border:2px dashed #E87722 !important}.view-wrap{animation:fadeIn .2s ease-out both}`}</style>
 
     {showTour&&<OnboardingTour onDone={function(){setShowTour(false);try{localStorage.setItem("at_toured","1")}catch(e){}}}/>}
+    {showNewModal&&<NewProspectModal onClose={function(){setShowNewModal(false)}} onAdd={function(data){addCompany(data);toast.add("Added "+data.name+" to hunt list!","success")}}/>}
     <Toasts toasts={toast.toasts}/>
     {panel&&<CompanyPanel co={panel} store={store} updateStage={updateStage} toast={toast.add} onClose={function(){setPanel(null)}}/>}
 
@@ -134,14 +170,15 @@ export default function App(){
       <div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:32,height:32,borderRadius:10,background:"linear-gradient(135deg,"+P+",#f59e0b)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:14}}>A</div><div><div style={{fontSize:13,fontWeight:800,color:"#fff"}}>ATALIAN <span style={{fontWeight:400,opacity:.5}}>Poland</span></div><div style={{fontSize:9,color:"rgba(255,255,255,.3)"}}>Sales Excellence</div></div></div>
       <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 12px",borderRadius:10,background:"rgba(255,255,255,.06)"}}><span style={{fontSize:10,color:"rgba(255,255,255,.4)"}}>Pipeline</span>{[{l:"SQL",c:"#16a34a",n:pipeSQL},{l:"MQL",c:"#f59e0b",n:pipeMQL},{l:"NR",c:"#ef4444",n:pipeNR}].map(function(p){return<span key={p.l} style={{display:"flex",alignItems:"center",gap:3}}><span className="pipe-dot" style={{width:7,height:7,borderRadius:20,background:p.c}}/><span style={{fontSize:12,fontWeight:800,color:p.c+"cc"}}>{p.n}</span><span style={{fontSize:8,color:"rgba(255,255,255,.3)"}}>{p.l}</span></span>})}</div>
       <div style={{display:"flex",gap:3,background:"rgba(255,255,255,.05)",borderRadius:10,padding:3}}>{[{id:"home",l:"🏠 Home"},{id:"list",l:"📋 Hunt List"},{id:"kanban",l:"📊 Pipeline"},{id:"dashboard",l:"📈 Analytics"}].map(function(v){return<button key={v.id} onClick={function(){setView(v.id);setPage(0)}} className="btn-pop" style={{padding:"5px 14px",borderRadius:7,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,fontFamily:F,background:view===v.id?P:"transparent",color:view===v.id?"#fff":"rgba(255,255,255,.5)"}}>{v.l}</button>})}</div>
+      <button onClick={function(){setShowNewModal(true)}} className="btn-pop" style={{padding:"6px 16px",borderRadius:10,border:"none",background:"#16a34a",color:"#fff",fontSize:11,fontWeight:800,cursor:"pointer",fontFamily:F,boxShadow:"0 2px 8px rgba(22,163,106,.3)"}}>+ New Prospect</button>
     </header>
 
     <main style={{padding:"18px 24px 36px",maxWidth:1400,margin:"0 auto"}}>
 
       {/* ═══ HOME ═══ */}
-      {view==="home"&&<div>
+      {view==="home"&&<div key="home" className="view-wrap">
         <h2 className="fade-up" style={{margin:"0 0 16px",fontSize:20,fontWeight:900}}>Good morning 👋</h2>
-        <div className="fade-up" style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>{STAGES.map(function(s){return<div key={s} className="hover-lift" onClick={function(){setView("list");setStageF(s)}} style={Object.assign({},cd,{padding:"12px 18px",cursor:"pointer",flex:"1 1 110px",minWidth:100,position:"relative",overflow:"hidden"})}><div style={{fontSize:9,textTransform:"uppercase",letterSpacing:".1em",color:STAGE_C[s],fontWeight:700}}>{STAGE_IC[s]} {s}</div><div style={{fontSize:22,fontWeight:900,color:Dk}}>{stageCounts[s]}</div><div style={{fontSize:9,color:"#9ca3af"}}>{stageRev[s]}m€</div><div style={{position:"absolute",bottom:0,left:0,right:0,height:3,background:STAGE_C[s]}}/></div>})}</div>
+        <div className="fade-up" style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>{STAGES.map(function(s){return<div key={s} className="hover-lift" onClick={function(){setView("list");setStageF(s)}} style={Object.assign({},cd,{padding:"12px 18px",cursor:"pointer",flex:"1 1 110px",minWidth:100,position:"relative",overflow:"hidden"})}><div style={{fontSize:9,textTransform:"uppercase",letterSpacing:".1em",color:STAGE_C[s],fontWeight:700}}>{STAGE_IC[s]} {s}</div><div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between"}}><div><div style={{fontSize:22,fontWeight:900,color:Dk}}>{stageCounts[s]}</div><div style={{fontSize:9,color:"#9ca3af"}}>{stageRev[s]}m€</div></div><Sparkline color={STAGE_C[s]}/></div><div style={{position:"absolute",bottom:0,left:0,right:0,height:3,background:STAGE_C[s]}}/></div>})}</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
           <div className="fade-up" style={Object.assign({},cd,{padding:"18px 22px"})}><h3 style={{margin:"0 0 4px",fontSize:14,fontWeight:800}}>🔥 Action Required</h3><p style={{margin:"0 0 10px",fontSize:11,color:"#9ca3af"}}>Prospects needing your attention</p>{contactedNoQual.length>0&&<div style={{marginBottom:10}}><div style={{fontSize:10,fontWeight:700,color:"#2563eb",marginBottom:4}}>📞 Needs qualification ({contactedNoQual.length})</div>{contactedNoQual.map(function(c){return<div key={c.id} onClick={function(){setPanel(c)}} style={{padding:"6px 10px",borderRadius:8,cursor:"pointer",fontSize:11,display:"flex",justifyContent:"space-between",background:"#f8fafc",marginBottom:3}}><b>{c.name}</b><span style={{color:"#9ca3af"}}>{c.revenueBnEur}bn€</span></div>})}</div>}{qualifiedNoProposal.length>0&&<div><div style={{fontSize:10,fontWeight:700,color:P,marginBottom:4}}>🎯 Move to proposal ({qualifiedNoProposal.length})</div>{qualifiedNoProposal.map(function(c){return<div key={c.id} onClick={function(){setPanel(c)}} style={{padding:"6px 10px",borderRadius:8,cursor:"pointer",fontSize:11,display:"flex",justifyContent:"space-between",background:"#f8fafc",marginBottom:3}}><b>{c.name}</b><span style={{color:"#9ca3af"}}>{c.segment.split(" ")[0]}</span></div>})}</div>}</div>
           <div className="fade-up" style={Object.assign({},cd,{padding:"18px 22px"})}><h3 style={{margin:"0 0 4px",fontSize:14,fontWeight:800}}>🏆 Hot Leads (SQL)</h3><p style={{margin:"0 0 10px",fontSize:11,color:"#9ca3af"}}>Ready for proposal</p>{recentSQLs.map(function(c){return<div key={c.id} onClick={function(){setPanel(c)}} style={{padding:"6px 10px",borderRadius:8,cursor:"pointer",fontSize:11,display:"flex",gap:8,background:"#f0fdf4",marginBottom:3,borderLeft:"3px solid #16a34a"}}><b style={{flex:1}}>{c.name}</b><span style={{color:"#6b7280"}}>{c.segment.split(" ")[0]}</span><span style={{fontWeight:800,color:"#16a34a"}}>{c.potentialSpendMEur}m€</span></div>})}{recentSQLs.length===0&&<div style={{padding:20,textAlign:"center",color:"#9ca3af",fontSize:12}}>No SQLs yet. Qualify some prospects!</div>}</div>
@@ -150,7 +187,7 @@ export default function App(){
       </div>}
 
       {/* ═══ HUNT LIST ═══ */}
-      {view==="list"&&<div className="fade-up">
+      {view==="list"&&<div key="list" className="view-wrap fade-up">
         <div style={{display:"flex",gap:4,marginBottom:12,flexWrap:"wrap",alignItems:"center"}}>
           <button onClick={function(){setStageF("All");setPage(0)}} className="btn-pop" style={{padding:"6px 16px",borderRadius:20,border:stageF==="All"?"2px solid "+Dk:"1.5px solid #e5e7eb",background:stageF==="All"?Dk:"#fff",color:stageF==="All"?"#fff":Dk,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:F}}>All ({companies.length})</button>
           {STAGES.map(function(s){return<button key={s} onClick={function(){setStageF(s);setPage(0)}} className="btn-pop" style={{padding:"6px 16px",borderRadius:20,border:stageF===s?"2px solid "+STAGE_C[s]:"1.5px solid #e5e7eb",background:stageF===s?STAGE_C[s]+"15":"#fff",color:stageF===s?STAGE_C[s]:"#6b7280",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:F}}>{STAGE_IC[s]} {s} ({stageCounts[s]})</button>})}
@@ -166,7 +203,7 @@ export default function App(){
       </div>}
 
       {/* ═══ KANBAN with DRAG & DROP ═══ */}
-      {view==="kanban"&&<div className="fade-up">
+      {view==="kanban"&&<div key="kanban" className="view-wrap fade-up">
         <h2 style={{margin:"0 0 14px",fontSize:18,fontWeight:900}}>Pipeline Board <span style={{fontSize:12,fontWeight:500,color:"#9ca3af"}}>— drag cards between columns</span></h2>
         <div style={{display:"grid",gridTemplateColumns:"repeat("+STAGES.length+",1fr)",gap:10,overflowX:"auto"}}>{STAGES.map(function(stage){
           var sc=companies.filter(function(c){return c.stage===stage}).slice(0,25);
@@ -183,11 +220,11 @@ export default function App(){
       </div>}
 
       {/* ═══ ANALYTICS ═══ */}
-      {view==="dashboard"&&<div className="fade-up">
+      {view==="dashboard"&&<div key="analytics" className="view-wrap fade-up">
         <h2 style={{margin:"0 0 14px",fontSize:18,fontWeight:900}}>Analytics</h2>
         {/* KPIs */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10,marginBottom:14}}>
-          {[{l:"Qualification Rate",v:(companies.length?Math.round((pipeSQL+pipeMQL+pipeNR)/companies.length*100):0)+"%",s:(pipeSQL+pipeMQL+pipeNR)+" / "+companies.length,c:Dk},{l:"SQL Conversion",v:(pipeSQL+pipeMQL+pipeNR?Math.round(pipeSQL/(pipeSQL+pipeMQL+pipeNR)*100):0)+"%",s:pipeSQL+" SQLs",c:"#16a34a"},{l:"Active Pipeline",v:stageRev.Contacted+stageRev.Qualified+stageRev.Proposal+"m€",s:"Contacted→Proposal",c:P},{l:"Won Value",v:stageRev.Won+"m€",s:stageCounts.Won+" deals",c:"#16a34a"}].map(function(k){return<div key={k.l} style={Object.assign({},cd,{padding:14,textAlign:"center"})}><div style={{fontSize:9,color:"#9ca3af",fontWeight:700,textTransform:"uppercase"}}>{k.l}</div><div style={{fontSize:26,fontWeight:900,color:k.c}}>{k.v}</div><div style={{fontSize:10,color:"#6b7280"}}>{k.s}</div></div>})}
+          {[{l:"Qualification Rate",v:(companies.length?Math.round((pipeSQL+pipeMQL+pipeNR)/companies.length*100):0)+"%",s:(pipeSQL+pipeMQL+pipeNR)+" / "+companies.length,c:Dk},{l:"SQL Conversion",v:(pipeSQL+pipeMQL+pipeNR?Math.round(pipeSQL/(pipeSQL+pipeMQL+pipeNR)*100):0)+"%",s:pipeSQL+" SQLs",c:"#16a34a"},{l:"Active Pipeline",v:stageRev.Contacted+stageRev.Qualified+stageRev.Proposal+"m€",s:"Contacted→Proposal",c:P},{l:"Won Value",v:stageRev.Won+"m€",s:stageCounts.Won+" deals",c:"#16a34a"}].map(function(k){return<div key={k.l} style={Object.assign({},cd,{padding:14,textAlign:"center"})}><div style={{fontSize:9,color:"#9ca3af",fontWeight:700,textTransform:"uppercase"}}>{k.l}</div><div style={{fontSize:26,fontWeight:900,color:k.c}}>{k.v}</div><div style={{fontSize:10,color:"#6b7280"}}>{k.s}</div><div style={{display:"flex",justifyContent:"center",marginTop:2}}><Sparkline color={k.c}/></div></div>})}
         </div>
 
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
