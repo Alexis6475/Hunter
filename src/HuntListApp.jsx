@@ -195,12 +195,12 @@ export default function App(){
           <div className="hover-lift" style={Object.assign({},cd,{padding:"18px 20px"})}>
             <h3 style={{margin:"0 0 4px",fontSize:14,fontWeight:800}}>Conversion Funnel</h3>
             <p style={{margin:"0 0 12px",fontSize:10,color:"#9ca3af"}}>Drop-off between stages</p>
-            {["New","Contacted","Qualified","Proposal","Won"].map(function(s,i,arr){var cnt=stageCounts[s];var prev=i>0?stageCounts[arr[i-1]]:cnt;var rate=prev?Math.round(cnt/prev*100):100;var maxW=stageCounts.New||1;return<div key={s} style={{marginBottom:6}}>
+            {["New","Contacted","Qualified","Proposal","Won"].map(function(s,i,arr){var cnt=stageCounts[s];var prev=i>0?stageCounts[arr[i-1]]:0;var rate=prev>0?Math.round(cnt/prev*100):-1;var maxW=stageCounts.New||1;return<div key={s} style={{marginBottom:6}}>
               <div style={{display:"flex",alignItems:"center",gap:8}}>
                 <span style={{width:80,fontSize:10,fontWeight:600,color:STAGE_C[s],textAlign:"right"}}>{STAGE_IC[s]} {s}</span>
-                <div style={{flex:1,height:24,background:"#f3f4f6",borderRadius:4,overflow:"hidden",position:"relative"}}><div style={{height:"100%",width:Math.max(cnt/maxW*100,1)+"%",background:STAGE_C[s],borderRadius:4,transition:"width .8s cubic-bezier(.4,0,.2,1)"}}/>
+                <div style={{flex:1,height:24,background:"#f3f4f6",borderRadius:4,overflow:"hidden",position:"relative"}}><div style={{height:"100%",width:(cnt>0?Math.max(cnt/maxW*100,2):0)+"%",background:STAGE_C[s],borderRadius:4,transition:"width .8s cubic-bezier(.4,0,.2,1)"}}/>
                   <span style={{position:"absolute",left:8,top:"50%",transform:"translateY(-50%)",fontSize:10,fontWeight:800,color:cnt/maxW>.15?"#fff":"#374151"}}>{cnt.toLocaleString()}</span></div>
-                {i>0&&<span style={{fontSize:10,fontWeight:700,color:rate>=50?"#16a34a":rate>=20?P:"#ef4444",minWidth:35}}>{rate}%</span>}
+                {i>0&&<span style={{fontSize:10,fontWeight:700,color:rate<0?"#d1d5db":rate>=50?"#16a34a":rate>=20?P:"#ef4444",minWidth:35}}>{rate<0?"—":rate+"%"}</span>}
               </div>
             </div>})}
           </div>
@@ -220,14 +220,16 @@ export default function App(){
           {/* Region Heatmap */}
           <div className="hover-lift" style={Object.assign({},cd,{padding:"18px 20px"})}>
             <h3 style={{margin:"0 0 4px",fontSize:14,fontWeight:800}}>Regional Heatmap</h3>
-            <p style={{margin:"0 0 12px",fontSize:10,color:"#9ca3af"}}>Potential spend by region</p>
-            {REGIONS.slice().sort(function(a,b){return regionData[b].spend-regionData[a].spend}).map(function(r){var d=regionData[r];var max=Math.max.apply(null,REGIONS.map(function(x){return regionData[x].spend}))||1;var intensity=d.spend/max;return<div key={r} style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
-              <span style={{width:110,fontSize:10,fontWeight:600,color:"#6b7280",textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r}</span>
-              <div style={{flex:1,height:22,borderRadius:4,position:"relative",background:"#f3f4f6",overflow:"hidden"}}>
-                <div style={{height:"100%",width:Math.max(intensity*100,2)+"%",background:"rgba(232,119,34,"+(.15+intensity*.85)+")",borderRadius:4,transition:"width .6s"}}/>
-                <span style={{position:"absolute",left:8,top:"50%",transform:"translateY(-50%)",fontSize:9,fontWeight:800,color:intensity>.3?"#fff":"#374151"}}>{d.spend}m€</span>
+            <p style={{margin:"0 0 6px",fontSize:10,color:"#9ca3af"}}>Potential spend by region — blue (low) → orange → red (high)</p>
+            <div style={{display:"flex",gap:4,marginBottom:10}}><span style={{fontSize:8,color:"#3b82f6"}}>● Low</span><span style={{fontSize:8,color:P}}>● Medium</span><span style={{fontSize:8,color:"#ef4444"}}>● High</span></div>
+            {REGIONS.slice().sort(function(a,b){return regionData[b].spend-regionData[a].spend}).map(function(r,i){var d=regionData[r];var max=Math.max.apply(null,REGIONS.map(function(x){return regionData[x].spend}))||1;var min=Math.min.apply(null,REGIONS.map(function(x){return regionData[x].spend}));var t=(d.spend-min)/(max-min||1);var heatColor=t>0.66?"#ef4444":t>0.33?P:"#3b82f6";var bgOpacity=0.12+t*0.25;return<div key={r} style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,padding:"4px 8px",borderRadius:8,background:heatColor+Math.round(bgOpacity*255).toString(16).padStart(2,"0"),transition:"background .3s"}}>
+              <span style={{width:20,fontSize:12,fontWeight:900,color:heatColor,textAlign:"center"}}>{i+1}</span>
+              <span style={{width:110,fontSize:10,fontWeight:700,color:Dk,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r}</span>
+              <div style={{flex:1,height:18,borderRadius:4,position:"relative",background:"rgba(255,255,255,.5)",overflow:"hidden"}}>
+                <div style={{height:"100%",width:Math.max(t*100,8)+"%",background:heatColor,borderRadius:4,transition:"width .6s",opacity:.8}}/>
+                <span style={{position:"absolute",left:6,top:"50%",transform:"translateY(-50%)",fontSize:9,fontWeight:800,color:t>.4?"#fff":Dk}}>{d.spend}m€</span>
               </div>
-              <span style={{fontSize:9,color:"#9ca3af",minWidth:30}}>{d.count}</span>
+              <span style={{fontSize:9,color:"#6b7280",minWidth:40,textAlign:"right"}}>{d.count} co.</span>
             </div>})}
           </div>
 
