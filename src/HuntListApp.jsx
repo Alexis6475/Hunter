@@ -117,7 +117,7 @@ export default function App(){
   var[view,setView]=useState("home");var[search,setSearch]=useState("");
   var[segF,setSegF]=useState("All");var[regF,setRegF]=useState("All");var[stageF,setStageF]=useState("All");
   var[sortK,setSortK]=useState("_caPrio");var[sortD,setSortD]=useState("desc");
-  var[newFirst,setNewFirst]=useState(false); // toggle: NEW prospects first, then sub-sort by sortK
+  var[recency,setRecency]=useState("none"); // "none" | "newest" | "oldest" — sub-sort tiebreaker
   var[page,setPage]=useState(0);var[panel,setPanel]=useState(null);var[hovRow,setHovRow]=useState(null);
   var[visibleCols,setVisibleCols]=useState(function(){return["name","stage","prequal","segment","priority","revenueBnEur","potentialSpendMEur","cluster","region"]});
   var store=useStore();var PS=35;var toast=useToast();
@@ -137,14 +137,16 @@ export default function App(){
     if(segF!=="All")d=d.filter(function(c){return c.segment===segF});
     if(regF!=="All")d=d.filter(function(c){return c.region===regF});
     if(stageF!=="All")d=d.filter(function(c){return c.stage===stageF});
-    var subSort=function(a,b){
-      if(sortK==="_caPrio"){var pa=prioRank(a),pb=prioRank(b);if(pa!==pb)return pa-pb;return b.revenueBnEur-a.revenueBnEur}
-      if(sortK==="priority"){var pa2=prioRank(a),pb2=prioRank(b);return sortD==="asc"?pa2-pb2:pb2-pa2}
-      var av=a[sortK],bv=b[sortK];if(typeof av==="string"){av=av.toLowerCase();bv=bv.toLowerCase()}return sortD==="asc"?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0)};
     d.sort(function(a,b){
-      if(newFirst){var na=a.isNew?0:1,nb=b.isNew?0:1;if(na!==nb)return na-nb}
-      return subSort(a,b)});
-    return d},[companies,search,segF,regF,stageF,sortK,sortD,newFirst]);
+      var primary;
+      if(sortK==="_caPrio"){var pa=prioRank(a),pb=prioRank(b);primary=pa!==pb?pa-pb:b.revenueBnEur-a.revenueBnEur}
+      else if(sortK==="priority"){var pa2=prioRank(a),pb2=prioRank(b);primary=sortD==="asc"?pa2-pb2:pb2-pa2}
+      else{var av=a[sortK],bv=b[sortK];if(typeof av==="string"){av=av.toLowerCase();bv=bv.toLowerCase()}primary=sortD==="asc"?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0)}
+      if(primary!==0)return primary;
+      if(recency==="newest")return(b.addedAt||0)-(a.addedAt||0);
+      if(recency==="oldest")return(a.addedAt||0)-(b.addedAt||0);
+      return 0});
+    return d},[companies,search,segF,regF,stageF,sortK,sortD,recency]);
   var pg=filtered.slice(page*PS,(page+1)*PS),tp=Math.ceil(filtered.length/PS)||1;
   var hs=function(k){if(k==="priority"){setSortK("priority");setSortD(sortK==="priority"&&sortD==="asc"?"desc":"asc")}else if(sortK===k){setSortD(sortD==="asc"?"desc":"asc")}else{setSortK(k);setSortD("desc")}setPage(0)};
 
@@ -202,12 +204,14 @@ export default function App(){
           <input placeholder="Search…" value={search} onChange={function(e){setSearch(e.target.value);setPage(0)}} style={Object.assign({},inp,{width:200})}/>
           <select value={segF} onChange={function(e){setSegF(e.target.value);setPage(0)}} style={Object.assign({},inp,{width:"auto",cursor:"pointer"})}><option value="All">Segment</option>{SEGMENTS.map(function(o){return<option key={o}>{o}</option>})}</select>
           <select value={regF} onChange={function(e){setRegF(e.target.value);setPage(0)}} style={Object.assign({},inp,{width:"auto",cursor:"pointer"})}><option value="All">Region</option>{REGIONS.map(function(o){return<option key={o}>{o}</option>})}</select>
-          {/* Sort buttons + New first toggle — they COMBINE */}
+          {/* Sort: primary + sub-sort by recency */}
           <div style={{display:"flex",alignItems:"center",gap:3,padding:"3px 6px",background:"#f8f9fb",borderRadius:8,border:"1px solid "+Bdr}}>
             <span style={{fontSize:9,fontWeight:700,color:Tx2}}>Sort:</span>
             {[{k:"_caPrio",l:"CA/Prio"},{k:"revenueBnEur",l:"Revenue"},{k:"potentialSpendMEur",l:"Spend"},{k:"priority",l:"Priority",d:"asc"}].map(function(s){return<button key={s.k} onClick={function(){setSortK(s.k);setSortD(s.d||"desc");setPage(0)}} style={{padding:"2px 8px",borderRadius:5,border:"none",background:sortK===s.k?P:"transparent",color:sortK===s.k?"#fff":Tx3,fontSize:9,fontWeight:sortK===s.k?700:500,cursor:"pointer",fontFamily:F}}>{s.l}</button>})}
-            <div style={{width:1,height:14,background:Bdr,margin:"0 2px"}}/>
-            <button onClick={function(){setNewFirst(!newFirst);setPage(0)}} style={{padding:"2px 8px",borderRadius:5,border:"none",background:newFirst?"#22c55e":"transparent",color:newFirst?"#fff":Tx3,fontSize:9,fontWeight:newFirst?700:500,cursor:"pointer",fontFamily:F}}>★ New first</button>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:3,padding:"3px 6px",background:"#f8f9fb",borderRadius:8,border:"1px solid "+Bdr}}>
+            <span style={{fontSize:9,fontWeight:700,color:Tx2}}>Then by:</span>
+            {[{k:"none",l:"—"},{k:"newest",l:"Newest first"},{k:"oldest",l:"Oldest first"}].map(function(s){return<button key={s.k} onClick={function(){setRecency(s.k);setPage(0)}} style={{padding:"2px 8px",borderRadius:5,border:"none",background:recency===s.k?Dk:"transparent",color:recency===s.k?"#fff":Tx3,fontSize:9,fontWeight:recency===s.k?700:500,cursor:"pointer",fontFamily:F}}>{s.l}</button>})}
           </div>
           <span style={{fontSize:11,color:Tx3,marginLeft:"auto"}}>{filtered.length} results</span>
         </div>
@@ -227,17 +231,23 @@ export default function App(){
             <div style={{display:"flex",alignItems:"center",gap:3,padding:"3px 6px",background:"#f8f9fb",borderRadius:8,border:"1px solid "+Bdr}}>
               <span style={{fontSize:9,fontWeight:700,color:Tx2}}>Sort:</span>
               {[{k:"_caPrio",l:"CA/Prio"},{k:"revenueBnEur",l:"Revenue"},{k:"potentialSpendMEur",l:"Spend"}].map(function(s){return<button key={s.k} onClick={function(){setKanbanSort(s.k)}} style={{padding:"2px 8px",borderRadius:5,border:"none",background:kanbanSort===s.k?P:"transparent",color:kanbanSort===s.k?"#fff":Tx3,fontSize:9,fontWeight:kanbanSort===s.k?700:500,cursor:"pointer",fontFamily:F}}>{s.l}</button>})}
-              <div style={{width:1,height:14,background:Bdr,margin:"0 2px"}}/>
-              <button onClick={function(){setNewFirst(!newFirst)}} style={{padding:"2px 8px",borderRadius:5,border:"none",background:newFirst?"#22c55e":"transparent",color:newFirst?"#fff":Tx3,fontSize:9,fontWeight:newFirst?700:500,cursor:"pointer",fontFamily:F}}>★ New first</button>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:3,padding:"3px 6px",background:"#f8f9fb",borderRadius:8,border:"1px solid "+Bdr}}>
+              <span style={{fontSize:9,fontWeight:700,color:Tx2}}>Then by:</span>
+              {[{k:"none",l:"—"},{k:"newest",l:"Newest first"},{k:"oldest",l:"Oldest first"}].map(function(s){return<button key={s.k} onClick={function(){setRecency(s.k)}} style={{padding:"2px 8px",borderRadius:5,border:"none",background:recency===s.k?Dk:"transparent",color:recency===s.k?"#fff":Tx3,fontSize:9,fontWeight:recency===s.k?700:500,cursor:"pointer",fontFamily:F}}>{s.l}</button>})}
             </div>
             <button onClick={exportHotLeads} style={{padding:"6px 14px",borderRadius:8,border:"none",background:"#22c55e",color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:F,display:"flex",alignItems:"center",gap:4}}>⬇ Export {pipeHot} Hot Leads</button>
           </div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat("+STAGES.length+",1fr)",gap:8,overflowX:"auto"}}>{STAGES.map(function(stage){
           var sc=companies.filter(function(c){return c.stage===stage}).sort(function(a,b){
-            if(newFirst){var na=a.isNew?0:1,nb=b.isNew?0:1;if(na!==nb)return na-nb}
-            if(kanbanSort==="_caPrio"){var pa=a.priority.includes("P1")?0:a.priority.includes("P2")?1:2;var pb=b.priority.includes("P1")?0:b.priority.includes("P2")?1:2;if(pa!==pb)return pa-pb;return b.revenueBnEur-a.revenueBnEur}
-            return b[kanbanSort]-a[kanbanSort]
+            var primary;
+            if(kanbanSort==="_caPrio"){var pa=a.priority.includes("P1")?0:a.priority.includes("P2")?1:2;var pb=b.priority.includes("P1")?0:b.priority.includes("P2")?1:2;primary=pa!==pb?pa-pb:b.revenueBnEur-a.revenueBnEur}
+            else{primary=b[kanbanSort]-a[kanbanSort]}
+            if(primary!==0)return primary;
+            if(recency==="newest")return(b.addedAt||0)-(a.addedAt||0);
+            if(recency==="oldest")return(a.addedAt||0)-(b.addedAt||0);
+            return 0
           }).slice(0,25);
           return<div key={stage} onDragOver={function(e){e.preventDefault();e.currentTarget.style.background=STAGE_C[stage]+"08"}} onDragLeave={function(e){e.currentTarget.style.background=Surf}} onDrop={function(e){e.currentTarget.style.background=Surf;if(dragId){updateStage(dragId,stage);toast.add("→ "+stage,"success");setDragId(null)}}} style={{background:Surf,borderRadius:10,padding:8,minWidth:180,minHeight:200,border:"1px solid "+Bdr}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4,padding:"2px 4px"}}><span style={{fontSize:11,fontWeight:700,color:STAGE_C[stage]}}>{STAGE_IC[stage]} {stage}</span><span style={{fontSize:10,fontWeight:600,color:Tx3}}>{stageCounts[stage]}</span></div>
