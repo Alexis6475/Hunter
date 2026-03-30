@@ -10,9 +10,9 @@ var SEGC={"Banking & Financial Services":"#E87722","Retail & Consumer Networks":
 var SEG_W={"Banking & Financial Services":42,"Logistics & Transport":24,"Retail & Consumer Networks":20,"Industrial Production":10,"Real Estate":4};
 
 /* ── New Stage System (per Atalian feedback) ── */
-var STAGES=["To be contacted","Contacted","Pre-qualified","Handed-over"];
-var STAGE_C={"To be contacted":"#6b7280","Contacted":"#3b82f6","Pre-qualified":"#E87722","Handed-over":"#22c55e"};
-var STAGE_IC={"To be contacted":"○","Contacted":"◐","Pre-qualified":"◉","Handed-over":"→"};
+var STAGES=["New","To be contacted","Contacted","Pre-qualified","Handed-over"];
+var STAGE_C={"New":"#8b5cf6","To be contacted":"#6b7280","Contacted":"#3b82f6","Pre-qualified":"#E87722","Handed-over":"#22c55e"};
+var STAGE_IC={"New":"★","To be contacted":"○","Contacted":"◐","Pre-qualified":"◉","Handed-over":"→"};
 
 /* ── Qualification: Hot Lead / Cold Lead / Not Relevant (replaces SQL/MQL/NR) ── */
 function calcWS(sc){var tw=0,tu=0;PQ.forEach(function(c){c.items.forEach(function(it){if(sc[it.id]){tw+=sc[it.id]*it.w;tu+=it.w}})});return tu?tw/tu:0}
@@ -41,7 +41,7 @@ function useToast(){var[toasts,setT]=useState([]);var add=function(m,t){var id=D
 function Toasts(props){return<div style={{position:"fixed",bottom:20,right:20,zIndex:9999,display:"flex",flexDirection:"column",gap:6}}>{props.toasts.map(function(t){return<div key={t.id} style={{padding:"10px 16px",borderRadius:10,background:Dk,color:"#fff",fontSize:12,fontWeight:600,fontFamily:F,boxShadow:"0 8px 24px rgba(0,0,0,.25)",display:"flex",alignItems:"center",gap:8}}><span style={{width:6,height:6,borderRadius:20,background:t.t==="success"?"#22c55e":P}}/>{t.m}</div>})}</div>}
 
 /* ── Onboarding ── */
-function OnboardingTour(props){var[s,setS]=useState(0);var steps=[{t:"Welcome to Atalian Sales Excellence",d:"Your pipeline management tool for hunting new logos in Poland.",i:"A"},{t:"Home — Daily Cockpit",d:"Action items, hot leads, pipeline at a glance.",i:"→"},{t:"Hunt List — Target Companies",d:"4,300 companies. Filter, sort by CA/Priority, export.",i:"≡"},{t:"Pipeline — Kanban Board",d:"Drag prospects: To be contacted → Contacted → Pre-qualified → Handed-over.",i:"◫"},{t:"Qualification — Score Leads",d:"7 criteria → Hot Lead, Cold Lead, or Not Relevant.",i:"◉"},{t:"Ready to hunt!",d:"Click any stage to start.",i:"✓"}];var st=steps[s];
+function OnboardingTour(props){var[s,setS]=useState(0);var steps=[{t:"Welcome to Atalian Sales Excellence",d:"Your pipeline management tool for hunting new logos in Poland.",i:"A"},{t:"Home — Daily Cockpit",d:"Action items, hot leads, pipeline at a glance.",i:"→"},{t:"Hunt List — Target Companies",d:"4,300 companies. Filter, sort by CA/Priority, export.",i:"≡"},{t:"Pipeline — Kanban Board",d:"Drag prospects: New → To be contacted → Contacted → Pre-qualified → Handed-over. Sort by CA/Priority.",i:"◫"},{t:"Qualification — Score Leads",d:"7 criteria → Hot Lead, Cold Lead, or Not Relevant.",i:"◉"},{t:"Ready to hunt!",d:"Click any stage to start.",i:"✓"}];var st=steps[s];
   return<div style={{position:"fixed",inset:0,zIndex:10000,background:"rgba(0,0,0,.6)",display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(8px)"}}><div style={{background:"#fff",borderRadius:16,padding:"32px",maxWidth:400,width:"90%",textAlign:"center"}}><div style={{width:48,height:48,borderRadius:12,background:Dk,color:P,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:900,marginBottom:12}}>{st.i}</div><h2 style={{margin:"0 0 8px",fontSize:17,fontWeight:800,color:Tx}}>{st.t}</h2><p style={{margin:"0 0 20px",fontSize:13,color:Tx2,lineHeight:1.6}}>{st.d}</p><div style={{display:"flex",justifyContent:"center",gap:3,marginBottom:16}}>{steps.map(function(_,i){return<div key={i} style={{width:s===i?20:6,height:6,borderRadius:20,background:s===i?P:Bdr}}/>})}</div><div style={{display:"flex",gap:8,justifyContent:"center"}}>{s>0&&<button onClick={function(){setS(s-1)}} style={{padding:"8px 16px",borderRadius:8,border:"1px solid "+Bdr,background:"#fff",color:Tx2,fontWeight:600,fontSize:12,cursor:"pointer",fontFamily:F}}>Back</button>}{s<steps.length-1?<button onClick={function(){setS(s+1)}} style={{padding:"8px 20px",borderRadius:8,border:"none",background:Dk,color:"#fff",fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:F}}>Next</button>:<button onClick={props.onDone} style={{padding:"8px 20px",borderRadius:8,border:"none",background:P,color:"#fff",fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:F}}>Get Started</button>}<button onClick={props.onDone} style={{padding:"8px 12px",border:"none",background:"transparent",color:Tx3,fontSize:11,cursor:"pointer",fontFamily:F}}>Skip</button></div></div></div>}
 
 /* ── Components ── */
@@ -126,7 +126,7 @@ export default function App(){
   var[newOnly,setNewOnly]=useState(false); // filter to show only recently added prospects
 
   var updateStage=useCallback(function(id,stage){setCo(function(prev){return prev.map(function(c){return c.id===id?Object.assign({},c,{stage:stage}):c})})},[]);
-  var addCo=useCallback(function(d){setCo(function(prev){var mx=prev.reduce(function(m,c){return Math.max(m,c.id)},0);return prev.concat([Object.assign({id:mx+1,segPriority:"Priority",mapped:true,priority:"P1 - High priority",ownership:d.ownership||"Private",revenuePLN:Math.round((d.revenueBnEur||1)*4166e6),profitPLN:0,stage:"To be contacted",isNew:true},d)])})},[]);
+  var addCo=useCallback(function(d){setCo(function(prev){var mx=prev.reduce(function(m,c){return Math.max(m,c.id)},0);return prev.concat([Object.assign({id:mx+1,segPriority:"Priority",mapped:true,priority:"P1 - High priority",ownership:d.ownership||"Private",revenuePLN:Math.round((d.revenueBnEur||1)*4166e6),profitPLN:0,stage:"New",isNew:true},d)])})},[]);
 
   // Helper: numeric priority rank for sorting
   var prioRank=function(c){return c.priority.includes("P1")?0:c.priority.includes("P2")?1:2};
