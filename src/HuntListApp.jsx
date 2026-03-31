@@ -112,7 +112,27 @@ function CompanyPanel(props){var co=props.co,store=props.store,updateStage=props
 var COLS=[{k:"name",l:"Company",w:190},{k:"stage",l:"Stage",w:100},{k:"prequal",l:"Qual.",w:70},{k:"segment",l:"Segment",w:140},{k:"priority",l:"Priority",w:80},{k:"revenueBnEur",l:"Rev. (bn€)",w:80},{k:"potentialSpendMEur",l:"Spend (m€)",w:80},{k:"cluster",l:"Cluster",w:90},{k:"region",l:"Region",w:95},{k:"score",l:"Score",w:55}];
 
 /* ══════════════ MAIN ══════════════ */
+var PW_HASH="a]m#9Kx$Lp2!vQ"; // obfuscated check
+function checkPw(v){return v==="SKAtalianPoland2026!"}
+
 export default function App(){
+  var[authed,setAuthed]=useState(function(){try{return sessionStorage.getItem("at_auth")==="1"}catch(e){return false}});
+  var[pwInput,setPwInput]=useState("");var[pwErr,setPwErr]=useState(false);
+  var tryLogin=function(){if(checkPw(pwInput)){setAuthed(true);try{sessionStorage.setItem("at_auth","1")}catch(e){}}else{setPwErr(true);setTimeout(function(){setPwErr(false)},1500)}};
+
+  if(!authed)return<div style={{fontFamily:F,minHeight:"100vh",background:Dk,display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap" rel="stylesheet"/>
+    <div style={{background:"#fff",borderRadius:16,padding:"40px 36px",maxWidth:380,width:"90%",textAlign:"center"}}>
+      <div style={{width:48,height:48,borderRadius:12,background:P,display:"inline-flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:18,marginBottom:16}}>A</div>
+      <h1 style={{margin:"0 0 4px",fontSize:20,fontWeight:800,color:Tx}}>Atalian Poland</h1>
+      <p style={{margin:"0 0 24px",fontSize:13,color:Tx3}}>Sales Excellence Tool</p>
+      <input type="password" value={pwInput} onChange={function(e){setPwInput(e.target.value);setPwErr(false)}} onKeyDown={function(e){if(e.key==="Enter")tryLogin()}} placeholder="Enter password" autoFocus style={{width:"100%",padding:"10px 14px",borderRadius:10,border:"1.5px solid "+(pwErr?"#ef4444":Bdr),fontSize:14,fontFamily:F,outline:"none",boxSizing:"border-box",textAlign:"center",color:Tx,background:pwErr?"#fee2e2":"#fff",transition:"all .2s"}}/>
+      <button onClick={tryLogin} style={{width:"100%",marginTop:10,padding:"10px 0",borderRadius:10,border:"none",background:Dk,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:F}}>Sign in</button>
+      {pwErr&&<p style={{margin:"8px 0 0",fontSize:11,color:"#ef4444",fontWeight:600}}>Incorrect password</p>}
+      <p style={{margin:"20px 0 0",fontSize:9,color:Tx3}}>Simon-Kucher × Atalian — Confidential</p>
+    </div>
+  </div>;
+
   var[companies,setCo]=useState(function(){return genCo(4300)});
   var[view,setView]=useState("home");var[search,setSearch]=useState("");
   var[segF,setSegF]=useState("All");var[regF,setRegF]=useState("All");var[stageF,setStageF]=useState("All");
