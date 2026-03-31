@@ -31,7 +31,7 @@ var PF_FIELDS=[
 ];
 var PF_SECS=[{id:"pre",title:"Pre-meeting",icon:"◇"},{id:"post",title:"Post-meeting",icon:"●"}];
 
-function useStore(){var[data,setData]=useState(function(){try{return JSON.parse(localStorage.getItem("at_v10")||"{}")}catch(e){return{}}});var save=function(id,key,val){setData(function(p){var next=Object.assign({},p);next[id]=Object.assign({},p[id]||{});next[id][key]=val;try{localStorage.setItem("at_v10",JSON.stringify(next))}catch(e){}return next})};var get=function(id){return data[id]||{}};var qual=function(id){var d=data[id];if(!d||!d.scores||!Object.keys(d.scores).length)return null;return getQ(calcWS(d.scores))};return{save:save,get:get,qual:qual,data:data}}
+function useStore(){var[data,setData]=useState(function(){try{return JSON.parse(localStorage.getItem("at_v11")||"{}")}catch(e){return{}}});var save=function(id,key,val){setData(function(p){var next=Object.assign({},p);next[id]=Object.assign({},p[id]||{});next[id][key]=val;try{localStorage.setItem("at_v11",JSON.stringify(next))}catch(e){}return next})};var get=function(id){return data[id]||{}};var qual=function(id){var d=data[id];if(!d||!d.scores||!Object.keys(d.scores).length)return null;return getQ(calcWS(d.scores))};return{save:save,get:get,qual:qual,data:data}}
 
 var cd={background:"#fff",borderRadius:10,border:"1px solid "+Bdr};
 var inp={padding:"7px 10px",borderRadius:8,border:"1px solid "+Bdr,fontSize:13,fontFamily:F,outline:"none",color:Tx,boxSizing:"border-box",background:"#fff",width:"100%"};
@@ -116,28 +116,15 @@ var PW_HASH="a]m#9Kx$Lp2!vQ"; // obfuscated check
 function checkPw(v){return v==="SKAtalianPoland2026!"}
 
 export default function App(){
+  // Auth
   var[authed,setAuthed]=useState(function(){try{return sessionStorage.getItem("at_auth")==="1"}catch(e){return false}});
   var[pwInput,setPwInput]=useState("");var[pwErr,setPwErr]=useState(false);
-  var tryLogin=function(){if(checkPw(pwInput)){setAuthed(true);try{sessionStorage.setItem("at_auth","1")}catch(e){}}else{setPwErr(true);setTimeout(function(){setPwErr(false)},1500)}};
-
-  if(!authed)return<div style={{fontFamily:F,minHeight:"100vh",background:Dk,display:"flex",alignItems:"center",justifyContent:"center"}}>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap" rel="stylesheet"/>
-    <div style={{background:"#fff",borderRadius:16,padding:"40px 36px",maxWidth:380,width:"90%",textAlign:"center"}}>
-      <div style={{width:48,height:48,borderRadius:12,background:P,display:"inline-flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:18,marginBottom:16}}>A</div>
-      <h1 style={{margin:"0 0 4px",fontSize:20,fontWeight:800,color:Tx}}>Atalian Poland</h1>
-      <p style={{margin:"0 0 24px",fontSize:13,color:Tx3}}>Sales Excellence Tool</p>
-      <input type="password" value={pwInput} onChange={function(e){setPwInput(e.target.value);setPwErr(false)}} onKeyDown={function(e){if(e.key==="Enter")tryLogin()}} placeholder="Enter password" autoFocus style={{width:"100%",padding:"10px 14px",borderRadius:10,border:"1.5px solid "+(pwErr?"#ef4444":Bdr),fontSize:14,fontFamily:F,outline:"none",boxSizing:"border-box",textAlign:"center",color:Tx,background:pwErr?"#fee2e2":"#fff",transition:"all .2s"}}/>
-      <button onClick={tryLogin} style={{width:"100%",marginTop:10,padding:"10px 0",borderRadius:10,border:"none",background:Dk,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:F}}>Sign in</button>
-      {pwErr&&<p style={{margin:"8px 0 0",fontSize:11,color:"#ef4444",fontWeight:600}}>Incorrect password</p>}
-      <p style={{margin:"20px 0 0",fontSize:9,color:Tx3}}>Simon-Kucher × Atalian — Confidential</p>
-    </div>
-  </div>;
-
+  // App state — ALL hooks must be before any conditional return
   var[companies,setCo]=useState(function(){return genCo(4300)});
   var[view,setView]=useState("home");var[search,setSearch]=useState("");
   var[segF,setSegF]=useState("All");var[regF,setRegF]=useState("All");var[stageF,setStageF]=useState("All");
   var[sortK,setSortK]=useState("_caPrio");var[sortD,setSortD]=useState("desc");
-  var[recency,setRecency]=useState("none"); // "none" | "newest" | "oldest" — sub-sort tiebreaker
+  var[recency,setRecency]=useState("none");
   var[page,setPage]=useState(0);var[panel,setPanel]=useState(null);var[hovRow,setHovRow]=useState(null);
   var[visibleCols,setVisibleCols]=useState(function(){return["name","stage","prequal","segment","priority","revenueBnEur","potentialSpendMEur","cluster","region"]});
   var store=useStore();var PS=35;var toast=useToast();
@@ -147,8 +134,6 @@ export default function App(){
 
   var updateStage=useCallback(function(id,stage){setCo(function(prev){return prev.map(function(c){return c.id===id?Object.assign({},c,{stage:stage}):c})})},[]);
   var addCo=useCallback(function(d){setCo(function(prev){var mx=prev.reduce(function(m,c){return Math.max(m,c.id)},0);return prev.concat([Object.assign({id:mx+1,segPriority:"Priority",mapped:true,priority:"P1 - High priority",ownership:d.ownership||"Private",revenuePLN:Math.round((d.revenueBnEur||1)*4166e6),profitPLN:0,stage:"New suspects",isNew:true,addedAt:Date.now()},d)])})},[]);
-
-  // Helper: numeric priority rank for sorting
   var prioRank=function(c){return c.priority.includes("P1")?0:c.priority.includes("P2")?1:2};
 
   var qualMap=useMemo(function(){var m={};companies.forEach(function(c){m[c.id]=store.qual(c.id)});return m},[companies,store]);
@@ -173,14 +158,27 @@ export default function App(){
   var pipeHot=0,pipeCold=0,pipeNR=0;companies.forEach(function(c){var q=qualMap[c.id];if(q){if(q.short==="Hot")pipeHot++;else if(q.short==="Cold")pipeCold++;else pipeNR++}});
   var stageCounts={};var stageRev={};STAGES.forEach(function(s){var sc=companies.filter(function(c){return c.stage===s});stageCounts[s]=sc.length;stageRev[s]=Math.round(sc.reduce(function(a,c){return a+c.potentialSpendMEur},0))});
   var wfD=useMemo(function(){var t=companies.length;var np=companies.filter(function(c){return c.segPriority==="Non-priority"}).length;var pr=t-np;var nm=companies.filter(function(c){return c.segPriority==="Priority"&&!c.mapped}).length;var p2c=companies.filter(function(c){return c.segPriority==="Priority"&&c.mapped&&c.priority.includes("P2")}).length;var p1c=companies.filter(function(c){return c.segPriority==="Priority"&&c.mapped&&c.priority.includes("P1")}).length;var pubc=companies.filter(function(c){return c.segPriority==="Priority"&&c.mapped&&c.priority.includes("P1")&&c.ownership==="Public"}).length;return{t:t,np:np,pr:pr,nm:nm,p2c:p2c,p1c:p1c,pubc:pubc,privc:p1c-pubc}},[companies]);
-
   var hotLeads=useMemo(function(){return companies.filter(function(c){return qualMap[c.id]&&qualMap[c.id].short==="Hot"}).slice(0,8)},[companies,qualMap]);
   var contactedNoQual=useMemo(function(){return companies.filter(function(c){return c.stage==="Contacted"&&!qualMap[c.id]}).slice(0,5)},[companies,qualMap]);
   var top20=useMemo(function(){return companies.slice().sort(function(a,b){return b.potentialSpendMEur-a.potentialSpendMEur}).slice(0,20)},[companies]);
   var regionData=useMemo(function(){var m={};REGIONS.forEach(function(r){var rc=companies.filter(function(c){return c.region===r});m[r]={count:rc.length,spend:Math.round(rc.reduce(function(s,c){return s+c.potentialSpendMEur},0))}});return m},[companies]);
-
-  // Export hot leads
   var exportHotLeads=function(){var hots=companies.filter(function(c){return qualMap[c.id]&&qualMap[c.id].short==="Hot"});if(!hots.length){toast.add("No hot leads to export","warning");return}exportCSV(hots,COLS,"hot_leads_export.csv");toast.add("Exported "+hots.length+" hot leads","success")};
+
+  var tryLogin=function(){if(checkPw(pwInput)){setAuthed(true);try{sessionStorage.setItem("at_auth","1")}catch(e){}}else{setPwErr(true);setTimeout(function(){setPwErr(false)},1500)}};
+
+  // ── AUTH GATE ──
+  if(!authed)return<div style={{fontFamily:F,minHeight:"100vh",background:Dk,display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap" rel="stylesheet"/>
+    <div style={{background:"#fff",borderRadius:16,padding:"40px 36px",maxWidth:380,width:"90%",textAlign:"center"}}>
+      <div style={{width:48,height:48,borderRadius:12,background:P,display:"inline-flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:18,marginBottom:16}}>A</div>
+      <h1 style={{margin:"0 0 4px",fontSize:20,fontWeight:800,color:Tx}}>Atalian Poland</h1>
+      <p style={{margin:"0 0 24px",fontSize:13,color:Tx3}}>Sales Excellence Tool</p>
+      <input type="password" value={pwInput} onChange={function(e){setPwInput(e.target.value);setPwErr(false)}} onKeyDown={function(e){if(e.key==="Enter")tryLogin()}} placeholder="Enter password" autoFocus style={{width:"100%",padding:"10px 14px",borderRadius:10,border:"1.5px solid "+(pwErr?"#ef4444":Bdr),fontSize:14,fontFamily:F,outline:"none",boxSizing:"border-box",textAlign:"center",color:Tx,background:pwErr?"#fee2e2":"#fff",transition:"all .2s"}}/>
+      <button onClick={tryLogin} style={{width:"100%",marginTop:10,padding:"10px 0",borderRadius:10,border:"none",background:Dk,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:F}}>Sign in</button>
+      {pwErr&&<p style={{margin:"8px 0 0",fontSize:11,color:"#ef4444",fontWeight:600}}>Incorrect password</p>}
+      <p style={{margin:"20px 0 0",fontSize:9,color:Tx3}}>Simon-Kucher × Atalian — Confidential</p>
+    </div>
+  </div>;
 
   return<div style={{fontFamily:F,background:Surf,minHeight:"100vh",color:Tx,display:"flex"}}>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap" rel="stylesheet"/>
