@@ -166,7 +166,7 @@ export default function App(){
 
   var tryLogin=function(){if(checkPw(pwInput)){setAuthed(true);try{sessionStorage.setItem("at_auth","1")}catch(e){}}else{setPwErr(true);setTimeout(function(){setPwErr(false)},1500)}};
 
-  // ── AUTH GATE ──
+  // ── RENDER ──
   if(!authed)return<div style={{fontFamily:F,minHeight:"100vh",background:Dk,display:"flex",alignItems:"center",justifyContent:"center"}}>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap" rel="stylesheet"/>
     <div style={{background:"#fff",borderRadius:16,padding:"40px 36px",maxWidth:380,width:"90%",textAlign:"center"}}>
