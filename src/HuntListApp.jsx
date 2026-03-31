@@ -42,7 +42,7 @@ var PF_FIELDS=[
 ];
 var PF_SECS=[{id:"pre",title:"Pre-meeting",icon:"◇"},{id:"post",title:"Post-meeting",icon:"●"}];
 
-function useStore(){var[data,setData]=useState(function(){try{return JSON.parse(localStorage.getItem("at_v11")||"{}")}catch(e){return{}}});var save=function(id,key,val){setData(function(p){var next=Object.assign({},p);next[id]=Object.assign({},p[id]||{});next[id][key]=val;try{localStorage.setItem("at_v11",JSON.stringify(next))}catch(e){}return next})};var get=function(id){return data[id]||{}};var qual=function(id){var d=data[id];if(!d||!d.scores||!Object.keys(d.scores).length)return null;return getQ(calcWS(d.scores))};return{save:save,get:get,qual:qual,data:data}}
+function useStore(){var[data,setData]=useState(function(){try{return JSON.parse(localStorage.getItem("at_v12")||"{}")}catch(e){return{}}});var save=function(id,key,val){setData(function(p){var next=Object.assign({},p);next[id]=Object.assign({},p[id]||{});next[id][key]=val;try{localStorage.setItem("at_v12",JSON.stringify(next))}catch(e){}return next})};var get=function(id){return data[id]||{}};var qual=function(id){var d=data[id];if(!d||!d.scores||!Object.keys(d.scores).length)return null;return getQ(calcWS(d.scores))};return{save:save,get:get,qual:qual,data:data}}
 
 var cd={background:"#fff",borderRadius:10,border:"1px solid "+Bdr};
 var inp={padding:"7px 10px",borderRadius:8,border:"1px solid "+Bdr,fontSize:13,fontFamily:F,outline:"none",color:Tx,boxSizing:"border-box",background:"#fff",width:"100%"};
