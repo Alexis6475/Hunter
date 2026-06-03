@@ -9,7 +9,7 @@ var REGIONS=["Mazowieckie","Śląskie","Wielkopolskie","Małopolskie","Dolnośl�
 var SEGC={"Banking & Financial Services":"#E87722","Retail & Consumer Networks":"#eab308","Industrial Production":"#8b5cf6","Logistics & Transport":"#06b6d4","Real Estate":"#ec4899"};
 var SEG_W={"Banking & Financial Services":42,"Logistics & Transport":24,"Retail & Consumer Networks":20,"Industrial Production":10,"Real Estate":4};
 
-/* ── New Stage System (per Atalian feedback) ── */
+/* ── Stage System ── */
 var STAGES=["New suspects","To be contacted","Contacted","Pre-qualified","Handed-over"];
 var STAGE_C={"New suspects":"#8b5cf6","To be contacted":"#6b7280","Contacted":"#3b82f6","Pre-qualified":"#E87722","Handed-over":"#22c55e"};
 var STAGE_IC={"New suspects":"★","To be contacted":"○","Contacted":"◐","Pre-qualified":"◉","Handed-over":"→"};
@@ -52,7 +52,7 @@ function useToast(){var[toasts,setT]=useState([]);var add=function(m,t){var id=D
 function Toasts(props){return<div style={{position:"fixed",bottom:20,right:20,zIndex:9999,display:"flex",flexDirection:"column",gap:6}}>{props.toasts.map(function(t){return<div key={t.id} style={{padding:"10px 16px",borderRadius:10,background:Dk,color:"#fff",fontSize:12,fontWeight:600,fontFamily:F,boxShadow:"0 8px 24px rgba(0,0,0,.25)",display:"flex",alignItems:"center",gap:8}}><span style={{width:6,height:6,borderRadius:20,background:t.t==="success"?"#22c55e":P}}/>{t.m}</div>})}</div>}
 
 /* ── Onboarding ── */
-function OnboardingTour(props){var[s,setS]=useState(0);var steps=[{t:"Welcome to Atalian Hunting Booster",d:"Your pipeline management tool for hunting new logos in Poland.",i:"A"},{t:"Home — Daily Cockpit",d:"Action items, hot leads, pipeline at a glance.",i:"→"},{t:"Hunt List — Target Companies",d:"4,300 companies. Filter, sort by CA/Priority, export.",i:"≡"},{t:"Pipeline — Kanban Board",d:"Drag prospects: New → To be contacted → Contacted → Pre-qualified → Handed-over. Sort by CA/Priority.",i:"◫"},{t:"Qualification — Score Leads",d:"7 criteria → Hot Lead, Cold Lead, or Not Relevant.",i:"◉"},{t:"Ready to hunt!",d:"Click any stage to start.",i:"✓"}];var st=steps[s];
+function OnboardingTour(props){var[s,setS]=useState(0);var steps=[{t:"Welcome to Hunting Booster",d:"Pipeline management tool for hunting new business.",i:"A"},{t:"Home — Daily Cockpit",d:"Action items, hot leads, pipeline at a glance.",i:"→"},{t:"Hunt List — Target Companies",d:"4,300 companies. Filter, sort by CA/Priority, export.",i:"≡"},{t:"Pipeline — Kanban Board",d:"Drag prospects: New → To be contacted → Contacted → Pre-qualified → Handed-over. Sort by CA/Priority.",i:"◫"},{t:"Qualification — Score Leads",d:"7 criteria → Hot Lead, Cold Lead, or Not Relevant.",i:"◉"},{t:"Ready to hunt!",d:"Click any stage to start.",i:"✓"}];var st=steps[s];
   return<div style={{position:"fixed",inset:0,zIndex:10000,background:"rgba(0,0,0,.6)",display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(8px)"}}><div style={{background:"#fff",borderRadius:16,padding:"32px",maxWidth:400,width:"90%",textAlign:"center"}}><div style={{width:48,height:48,borderRadius:12,background:Dk,color:P,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:900,marginBottom:12}}>{st.i}</div><h2 style={{margin:"0 0 8px",fontSize:17,fontWeight:800,color:Tx}}>{st.t}</h2><p style={{margin:"0 0 20px",fontSize:13,color:Tx2,lineHeight:1.6}}>{st.d}</p><div style={{display:"flex",justifyContent:"center",gap:3,marginBottom:16}}>{steps.map(function(_,i){return<div key={i} style={{width:s===i?20:6,height:6,borderRadius:20,background:s===i?P:Bdr}}/>})}</div><div style={{display:"flex",gap:8,justifyContent:"center"}}>{s>0&&<button onClick={function(){setS(s-1)}} style={{padding:"8px 16px",borderRadius:8,border:"1px solid "+Bdr,background:"#fff",color:Tx2,fontWeight:600,fontSize:12,cursor:"pointer",fontFamily:F}}>Back</button>}{s<steps.length-1?<button onClick={function(){setS(s+1)}} style={{padding:"8px 20px",borderRadius:8,border:"none",background:Dk,color:"#fff",fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:F}}>Next</button>:<button onClick={props.onDone} style={{padding:"8px 20px",borderRadius:8,border:"none",background:P,color:"#fff",fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:F}}>Get Started</button>}<button onClick={props.onDone} style={{padding:"8px 12px",border:"none",background:"transparent",color:Tx3,fontSize:11,cursor:"pointer",fontFamily:F}}>Skip</button></div></div></div>}
 
 /* ── Components ── */
@@ -123,14 +123,7 @@ function CompanyPanel(props){var co=props.co,store=props.store,updateStage=props
 var COLS=[{k:"name",l:"Company",w:190},{k:"stage",l:"Stage",w:100},{k:"prequal",l:"Qual.",w:70},{k:"segment",l:"Segment",w:140},{k:"priority",l:"Priority",w:80},{k:"revenueBnEur",l:"Rev. (bn€)",w:80},{k:"potentialSpendMEur",l:"Spend (m€)",w:80},{k:"cluster",l:"Cluster",w:90},{k:"region",l:"Region",w:95},{k:"score",l:"Score",w:55}];
 
 /* ══════════════ MAIN ══════════════ */
-var PW_HASH="a]m#9Kx$Lp2!vQ"; // obfuscated check
-function checkPw(v){return v==="SKAtalianPoland2026!"}
-
 export default function App(){
-  // Auth
-  var[authed,setAuthed]=useState(function(){try{return sessionStorage.getItem("at_auth")==="1"}catch(e){return false}});
-  var[pwInput,setPwInput]=useState("");var[pwErr,setPwErr]=useState(false);
-  // App state — ALL hooks must be before any conditional return
   var[companies,setCo]=useState(function(){return genCo(4300)});
   var[view,setView]=useState("home");var[search,setSearch]=useState("");
   var[segF,setSegF]=useState("All");var[regF,setRegF]=useState("All");var[stageF,setStageF]=useState("All");
@@ -175,22 +168,6 @@ export default function App(){
   var regionData=useMemo(function(){var m={};REGIONS.forEach(function(r){var rc=companies.filter(function(c){return c.region===r});m[r]={count:rc.length,spend:Math.round(rc.reduce(function(s,c){return s+c.potentialSpendMEur},0))}});return m},[companies]);
   var exportHotLeads=function(){var hots=companies.filter(function(c){return qualMap[c.id]&&qualMap[c.id].short==="Hot"});if(!hots.length){toast.add("No hot leads to export","warning");return}exportCSV(hots,COLS,"hot_leads_export.csv");toast.add("Exported "+hots.length+" hot leads","success")};
 
-  var tryLogin=function(){if(checkPw(pwInput)){setAuthed(true);try{sessionStorage.setItem("at_auth","1")}catch(e){}}else{setPwErr(true);setTimeout(function(){setPwErr(false)},1500)}};
-
-  // ── RENDER ──
-  if(!authed)return<div style={{fontFamily:F,minHeight:"100vh",background:Dk,display:"flex",alignItems:"center",justifyContent:"center"}}>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap" rel="stylesheet"/>
-    <div style={{background:"#fff",borderRadius:16,padding:"40px 36px",maxWidth:380,width:"90%",textAlign:"center"}}>
-      <div style={{width:48,height:48,borderRadius:12,background:P,display:"inline-flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:18,marginBottom:16}}>A</div>
-      <h1 style={{margin:"0 0 4px",fontSize:20,fontWeight:800,color:Tx}}>Atalian Poland</h1>
-      <p style={{margin:"0 0 24px",fontSize:13,color:Tx3}}>Hunting Booster</p>
-      <input type="password" value={pwInput} onChange={function(e){setPwInput(e.target.value);setPwErr(false)}} onKeyDown={function(e){if(e.key==="Enter")tryLogin()}} placeholder="Enter password" autoFocus style={{width:"100%",padding:"10px 14px",borderRadius:10,border:"1.5px solid "+(pwErr?"#ef4444":Bdr),fontSize:14,fontFamily:F,outline:"none",boxSizing:"border-box",textAlign:"center",color:Tx,background:pwErr?"#fee2e2":"#fff",transition:"all .2s"}}/>
-      <button onClick={tryLogin} style={{width:"100%",marginTop:10,padding:"10px 0",borderRadius:10,border:"none",background:Dk,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:F}}>Sign in</button>
-      {pwErr&&<p style={{margin:"8px 0 0",fontSize:11,color:"#ef4444",fontWeight:600}}>Incorrect password</p>}
-      <p style={{margin:"20px 0 0",fontSize:9,color:Tx3}}>Simon-Kucher × Atalian — Confidential</p>
-    </div>
-  </div>;
-
   return<div style={{fontFamily:F,background:Surf,minHeight:"100vh",color:Tx,display:"flex"}}>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap" rel="stylesheet"/>
     <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}.v-fade{animation:fadeIn .2s ease-out both}.r-hover{transition:background .1s}.r-hover:hover{background:#f1f3f9 !important}`}</style>
@@ -202,7 +179,7 @@ export default function App(){
 
     {/* ── SIDEBAR ── */}
     <nav style={{width:220,background:Dk,color:"#fff",padding:"16px 0",display:"flex",flexDirection:"column",position:"fixed",top:0,bottom:0,left:0,zIndex:100}}>
-      <div style={{padding:"0 16px",marginBottom:20}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:28,height:28,borderRadius:7,background:P,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:12}}>A</div><div><div style={{fontSize:13,fontWeight:700}}>Atalian</div><div style={{fontSize:9,color:"rgba(255,255,255,.3)"}}>Hunting Booster</div></div></div></div>
+      <div style={{padding:"0 16px",marginBottom:20}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:28,height:28,borderRadius:7,background:P,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#fff",fontSize:12}}>A</div><div><div style={{fontSize:13,fontWeight:700}}>HB</div><div style={{fontSize:9,color:"rgba(255,255,255,.3)"}}>Hunting Booster</div></div></div></div>
       <div style={{display:"flex",flexDirection:"column",gap:1,padding:"0 8px"}}>{[{id:"home",l:"Home",ic:"⌂"},{id:"list",l:"Hunt List",ic:"≡"},{id:"kanban",l:"Pipeline",ic:"◫"},{id:"dashboard",l:"Analytics",ic:"◔"}].map(function(v){var active=view===v.id;return<button key={v.id} onClick={function(){setView(v.id);setPage(0)}} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:7,border:"none",cursor:"pointer",fontFamily:F,fontSize:12,fontWeight:active?600:400,background:active?"rgba(255,255,255,.08)":"transparent",color:active?"#fff":"rgba(255,255,255,.45)",textAlign:"left",width:"100%"}}><span style={{fontSize:14,width:18,textAlign:"center"}}>{v.ic}</span>{v.l}</button>})}</div>
       <div style={{margin:"auto 0 0",padding:"12px 16px",borderTop:"1px solid rgba(255,255,255,.06)"}}>
         <div style={{fontSize:9,color:"rgba(255,255,255,.3)",textTransform:"uppercase",letterSpacing:".1em",marginBottom:8}}>Qualification</div>
