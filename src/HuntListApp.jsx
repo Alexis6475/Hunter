@@ -6,7 +6,7 @@ var P="#4F46E5",Dk="#0f1117",Dk2="#1a1d27",Dk3="#252836",Surf="#f8f9fb",Bdr="#e8
 var SEGMENTS=["Banking & Financial Services","Logistics & Transport","Retail & Consumer Networks","Industrial Production","Real Estate"];
 var SUB_SEG={"Banking & Financial Services":["Financial service activities"],"Logistics & Transport":["Warehousing and support activities"],"Retail & Consumer Networks":["Retail trade"],"Industrial Production":["Basic metals","Computers & electronics","Motor vehicles"],"Real Estate":["Real estate activities"]};
 var REGIONS=["North","South","East","West","Central","Metro","Coastal","Highland"];
-var SEGC={"Banking "Banking & Financial Services":P Financial Services":"#4F46E5","Retail & Consumer Networks":"#eab308","Industrial Production":"#8b5cf6","Logistics & Transport":"#06b6d4","Real Estate":"#ec4899"};
+var SEGC={"Banking & Financial Services":"#4F46E5","Retail & Consumer Networks":"#eab308","Industrial Production":"#8b5cf6","Logistics & Transport":"#06b6d4","Real Estate":"#ec4899"};
 var SEG_W={"Banking & Financial Services":42,"Logistics & Transport":24,"Retail & Consumer Networks":20,"Industrial Production":10,"Real Estate":4};
 
 /* ── Stage System ── */
